@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Loader2, Mail } from "lucide-react";
 import Link from "next/link";
+import axios from "axios";
 
 export default function VerifyEmailPage() {
 	const searchParams = useSearchParams();
@@ -27,10 +28,14 @@ export default function VerifyEmailPage() {
 		// Call your backend verification endpoint
 		const verifyEmail = async () => {
 			try {
-				const response = await fetch(`/api/auth/verify?token=${token}`);
-				const data = await response.json();
+				// const response = await fetch(`/api/auth/verify?token=${token}`);
+				// const data = await response.json();
 
-				if (response.ok) {
+				const response = await axios.post(
+					`${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/auth/verify/${token}`
+				);
+
+				if (response.status === 200) {
 					setStatus("success");
 					setMessage("Your email has been verified successfully!");
 					// Redirect to onboarding after 2 seconds
@@ -39,7 +44,7 @@ export default function VerifyEmailPage() {
 					}, 2000);
 				} else {
 					setStatus("error");
-					setMessage(data.message || "Verification failed");
+					setMessage(response.data.message || "Verification failed");
 				}
 			} catch (error) {
 				console.log(error);
@@ -55,13 +60,11 @@ export default function VerifyEmailPage() {
 		setResending(true);
 		try {
 			// Call your backend to resend verification email
-			const response = await fetch("/api/auth/resend-verification", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ token }),
-			});
+			const response = await axios.post(
+				`${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/auth/resend-verification/${token}`
+			);
 
-			if (response.ok) {
+			if (response.status === 200) {
 				setMessage("Verification email sent! Check your inbox.");
 			}
 		} catch (error) {

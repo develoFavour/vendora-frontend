@@ -5,6 +5,8 @@ import { GeistMono } from "geist/font/mono";
 import { Playfair_Display } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "./client-layout";
+import { Toaster } from "@/components/ui/sonner";
+import { OnboardingProvider } from "@/lib/onboarding-context";
 
 const playfair = Playfair_Display({
 	subsets: ["latin"],
@@ -29,7 +31,10 @@ export default function RootLayout({
 			<body
 				className={`font-sans ${GeistSans.variable} ${GeistMono.variable} ${playfair.variable}`}
 			>
-				<ClientLayout>{children}</ClientLayout>
+				<OnboardingProvider>
+					<ClientLayout>{children}</ClientLayout>
+				</OnboardingProvider>
+				<Toaster />
 			</body>
 		</html>
 	);

@@ -16,8 +16,12 @@ import {
 	Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function SignupPage() {
+	const router = useRouter();
 	const [selectedRole, setSelectedRole] = useState<"customer" | "vendor">(
 		"customer"
 	);
@@ -46,23 +50,30 @@ export default function SignupPage() {
 			return;
 		}
 
+		// Debug: Log the environment variable
+		const apiUrl = process.env.NEXT_PUBLIC_BASE_API_URL;
+		console.log("API URL from env:", apiUrl);
+		console.log("Full URL:", `${apiUrl}/api/v1/auth/register`);
+
 		try {
-			const response = await fetch("/api/auth/signup", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					...formData,
-					role: selectedRole,
-				}),
-			});
+			const response = await axios.post(
+				`${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/auth/register`,
+				{ ...formData, role: selectedRole }
+			);
 
-			const data = await response.json();
+			console.log("RESPONSE:", response);
+			const data = response;
 
-			if (response.ok) {
+			if (response) {
 				setSuccess(true);
-				localStorage.setItem("accessToken", data.accessToken);
+
+				toast.success(
+					"Account created successfully! A verification email has been sent to your email, please verify your account."
+				);
+				localStorage.setItem("accessToken", data.data.accessToken);
+				router.push("/login");
 			} else {
-				setError(data.message || "Signup failed");
+				setError("Signup failed");
 			}
 		} catch (err) {
 			console.log(err);
