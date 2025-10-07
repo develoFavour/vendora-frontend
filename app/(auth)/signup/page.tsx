@@ -22,9 +22,9 @@ import { toast } from "sonner";
 
 export default function SignupPage() {
 	const router = useRouter();
-	const [selectedRole, setSelectedRole] = useState<"customer" | "vendor">(
-		"customer"
-	);
+	// const [selectedRole, setSelectedRole] = useState<"customer" | "vendor">(
+	// 	"customer"
+	// );
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -58,7 +58,7 @@ export default function SignupPage() {
 		try {
 			const response = await axios.post(
 				`${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/auth/register`,
-				{ ...formData, role: selectedRole }
+				{ formData }
 			);
 
 			console.log("RESPONSE:", response);
@@ -121,7 +121,7 @@ export default function SignupPage() {
 
 			<form onSubmit={handleSubmit} className="space-y-6">
 				{/* Role selection */}
-				<div>
+				{/* <div>
 					<label className="block text-sm font-medium text-gray-900 mb-3">
 						I want to
 					</label>
@@ -216,7 +216,7 @@ export default function SignupPage() {
 							)}
 						</button>
 					</div>
-				</div>
+				</div> */}
 
 				{/* Form fields with glassmorphic styling */}
 				<div className="space-y-4">
