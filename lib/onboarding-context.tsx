@@ -55,7 +55,7 @@ function onboardingReducer(
 ): OnboardingState {
 	switch (action.type) {
 		case "SET_ROLE":
-			const totalSteps = action.payload === 'vendor' ? 6 : 4; // 6 for vendor, 4 for customer
+			const totalSteps = action.payload === "vendor" ? 6 : 4; // 6 for vendor, 4 for customer
 			return {
 				...state,
 				userRole: action.payload,
@@ -141,6 +141,7 @@ interface OnboardingContextType {
 	setStepData: (stepId: string, data: Record<string, unknown>) => void;
 	setError: (stepId: string, error: string) => void;
 	clearError: (stepId: string) => void;
+	setLoading: (loading: boolean) => void;
 	isStepCompleted: (stepId: string) => boolean;
 	canProceedToNext: (currentStepId?: string) => boolean;
 	getAllFormData: () => Record<string, unknown>;
@@ -150,81 +151,90 @@ const OnboardingContext = createContext<OnboardingContextType | undefined>(
 	undefined
 );
 
-export function OnboardingProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(onboardingReducer, initialState);
+export function OnboardingProvider({
+	children,
+}: {
+	children: React.ReactNode;
+}) {
+	const [state, dispatch] = useReducer(onboardingReducer, initialState);
 
-  // Persist onboarding data to localStorage
-  useEffect(() => {
-    const savedData = localStorage.getItem('vendora-onboarding');
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData) as {
-          userRole?: UserRole;
-          stepData?: Record<string, Record<string, unknown>>;
-        };
-        if (parsed.userRole) {
-          dispatch({ type: 'SET_ROLE', payload: parsed.userRole });
-        }
-        if (parsed.stepData) {
-          Object.entries(parsed.stepData).forEach(([stepId, data]) => {
-            dispatch({ type: 'SET_STEP_DATA', payload: { stepId, data } });
-          });
-        }
-      } catch (error) {
-        console.error('Error loading onboarding data:', error);
-      }
-    }
-  }, []);
+	// Persist onboarding data to localStorage
+	useEffect(() => {
+		const savedData = localStorage.getItem("vendora-onboarding");
+		if (savedData) {
+			try {
+				const parsed = JSON.parse(savedData) as {
+					userRole?: UserRole;
+					stepData?: Record<string, Record<string, unknown>>;
+				};
+				if (parsed.userRole) {
+					dispatch({ type: "SET_ROLE", payload: parsed.userRole });
+				}
+				if (parsed.stepData) {
+					Object.entries(parsed.stepData).forEach(([stepId, data]) => {
+						dispatch({ type: "SET_STEP_DATA", payload: { stepId, data } });
+					});
+				}
+			} catch (error) {
+				console.error("Error loading onboarding data:", error);
+			}
+		}
+	}, []);
 
-  useEffect(() => {
-    const dataToSave = {
-      userRole: state.userRole,
-      stepData: state.stepData,
-      currentStep: state.currentStep,
-    };
-    localStorage.setItem('vendora-onboarding', JSON.stringify(dataToSave));
-  }, [state.userRole, state.stepData, state.currentStep]);
+	useEffect(() => {
+		const dataToSave = {
+			userRole: state.userRole,
+			stepData: state.stepData,
+			currentStep: state.currentStep,
+		};
+		localStorage.setItem("vendora-onboarding", JSON.stringify(dataToSave));
+	}, [state.userRole, state.stepData, state.currentStep]);
 
-  const nextStep = () => dispatch({ type: 'NEXT_STEP' });
-  const prevStep = () => dispatch({ type: 'PREV_STEP' });
-  const goToStep = (step: number) => dispatch({ type: 'GO_TO_STEP', payload: step });
-  const setStepData = (stepId: string, data: Record<string, unknown>) =>
-    dispatch({ type: 'SET_STEP_DATA', payload: { stepId, data } });
-  const setError = (stepId: string, error: string) =>
-    dispatch({ type: 'SET_ERROR', payload: { stepId, error } });
-  const clearError = (stepId: string) => dispatch({ type: 'CLEAR_ERROR', payload: stepId });
+	const nextStep = () => dispatch({ type: "NEXT_STEP" });
+	const prevStep = () => dispatch({ type: "PREV_STEP" });
+	const goToStep = (step: number) =>
+		dispatch({ type: "GO_TO_STEP", payload: step });
+	const setStepData = (stepId: string, data: Record<string, unknown>) =>
+		dispatch({ type: "SET_STEP_DATA", payload: { stepId, data } });
+	const setError = (stepId: string, error: string) =>
+		dispatch({ type: "SET_ERROR", payload: { stepId, error } });
+	const clearError = (stepId: string) =>
+		dispatch({ type: "CLEAR_ERROR", payload: stepId });
+	const setLoading = (loading: boolean) =>
+		dispatch({ type: "SET_LOADING", payload: loading });
 
-  const isStepCompleted = (stepId: string) => state.completedSteps.has(stepId);
+	const isStepCompleted = (stepId: string) => state.completedSteps.has(stepId);
 
-  const canProceedToNext = (currentStepId?: string) => {
-    if (currentStepId && state.errors[currentStepId]) return false;
-    return state.currentStep < state.totalSteps - 1;
-  };
+	const canProceedToNext = (currentStepId?: string) => {
+		if (currentStepId && state.errors[currentStepId]) return false;
+		return state.currentStep < state.totalSteps - 1;
+	};
 
-  const getAllFormData = () => ({
-    userRole: state.userRole,
-    ...state.stepData,
-  });
+	const getAllFormData = () => ({
+		userRole: state.userRole,
+		...state.stepData,
+	});
 
-  const contextValue: OnboardingContextType = {
-    state,
-    dispatch,
-    nextStep,
-    prevStep,
-    goToStep,
-    setStepData,
-    setError,
-    clearError,
-    isStepCompleted,
-    canProceedToNext,
-    getAllFormData,
-  };
+	const contextValue: OnboardingContextType = {
+		state,
+		dispatch,
+		nextStep,
+		prevStep,
+		goToStep,
+		setStepData,
+		setError,
+		clearError,
+		setLoading,
+		isStepCompleted,
+		canProceedToNext,
+		getAllFormData,
+	};
 
-  return (
-    <OnboardingContext.Provider value={contextValue}>
-      {children}
-    </OnboardingContext.Provider>
-  );
+	return (
+		<OnboardingContext.Provider value={contextValue}>
+			{children}
+		</OnboardingContext.Provider>
+	);
 }
 
 export function useOnboarding() {

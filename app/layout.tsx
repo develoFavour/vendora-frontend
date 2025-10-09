@@ -34,7 +34,7 @@ export default function RootLayout({
 				<OnboardingProvider>
 					<ClientLayout>{children}</ClientLayout>
 				</OnboardingProvider>
-				<Toaster />
+				<Toaster richColors position="top-right" />
 			</body>
 		</html>
 	);

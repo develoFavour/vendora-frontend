@@ -6,6 +6,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
 	const [showPassword, setShowPassword] = useState(false);
@@ -16,29 +19,26 @@ export default function LoginPage() {
 		password: "",
 	});
 
+	const router = useRouter();
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setLoading(true);
 		setError("");
 
 		try {
-			const response = await fetch("/api/auth/login", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(formData),
-			});
-
-			const data = await response.json();
-
-			if (response.ok) {
-				localStorage.setItem("accessToken", data.accessToken);
-				window.location.href = "/dashboard";
-			} else {
-				setError(data.message || "Login failed");
+			const { data } = await api.post("/api/v1/auth/login", formData);
+			// Support both possible payload shapes
+			const token: string | undefined = data?.accessToken ?? data?.data?.accessToken;
+			if (token) {
+				localStorage.setItem("accessToken", token);
 			}
-		} catch (err) {
-			console.log(err);
-			setError("Something went wrong. Please try again.");
+			toast.success("Signed in successfully");
+			router.push("/dashboard");
+		} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : "Login failed";
+			setError(message);
+			toast.error(message);
 		} finally {
 			setLoading(false);
 		}

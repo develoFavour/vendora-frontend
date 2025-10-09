@@ -168,6 +168,17 @@ export function OnboardingLayout({
 						<ProgressIndicator steps={steps} />
 					)}
 
+					{/* Error Display */}
+					{Object.keys(state.errors).length > 0 && (
+						<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+							{Object.entries(state.errors).map(([stepId, error]) => (
+								<p key={stepId} className="text-sm text-red-800">
+									{error}
+								</p>
+							))}
+						</div>
+					)}
+
 					{/* Main Content */}
 					<Card className="backdrop-blur-md bg-white/80 border-white/20 shadow-xl">
 						<CardContent className="p-8">{children}</CardContent>
@@ -233,6 +244,9 @@ interface CategorySelectorProps {
 	description?: string;
 	maxSelections?: number;
 	minSelections?: number;
+	onNext?: () => void;
+	showNextButton?: boolean;
+	nextButtonText?: string;
 }
 
 export function CategorySelector({
@@ -243,6 +257,9 @@ export function CategorySelector({
 	description = "Choose the categories that interest you most",
 	maxSelections = 3,
 	minSelections = 1,
+	onNext,
+	showNextButton = true,
+	nextButtonText = "Continue",
 }: CategorySelectorProps) {
 	const handleCategoryToggle = (categoryId: string) => {
 		const isSelected = selectedCategories.includes(categoryId);
@@ -327,6 +344,19 @@ export function CategorySelector({
 					<p className="text-sm text-amber-800">
 						You&apos;ve reached the maximum of {maxSelections} categories
 					</p>
+				</div>
+			)}
+
+			{showNextButton && onNext && (
+				<div className="flex justify-end pt-4">
+					<Button
+						onClick={onNext}
+						disabled={selectedCategories.length < minSelections}
+						className="bg-black hover:bg-black/80 cursor-pointer transition-all"
+					>
+						{nextButtonText}
+						<ArrowRight className="w-4 h-4 ml-2" />
+					</Button>
 				</div>
 			)}
 		</div>

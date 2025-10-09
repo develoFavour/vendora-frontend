@@ -1,23 +1,31 @@
-// Role selection page - First step in onboarding flow
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, Store, ArrowRight } from "lucide-react";
 import { useOnboarding } from "@/lib/onboarding-context";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 export default function RoleSelectionPage() {
 	const { dispatch, state } = useOnboarding();
 	const router = useRouter();
+	const [submitting, setSubmitting] = useState(false);
 
 	const handleRoleSelection = (role: "customer" | "vendor") => {
+		if (submitting) return;
+		setSubmitting(true);
 		dispatch({ type: "SET_ROLE", payload: role });
+		toast.success(
+			`Continuing as ${role === "customer" ? "Customer" : "Vendor"}`
+		);
 
 		// Redirect to main onboarding flow
 		setTimeout(() => {
 			router.push("/onboarding");
+			setSubmitting(false);
 		}, 300);
 	};
 
@@ -83,8 +91,9 @@ export default function RoleSelectionPage() {
 									onClick={() => handleRoleSelection("customer")}
 									className="w-full bg-black hover:bg-black/80 cursor-pointer transition-all"
 									size="lg"
+									disabled={submitting}
 								>
-									Continue as Customer
+									{submitting ? "Please wait..." : "Continue as Customer"}
 									<ArrowRight className="w-4 h-4 ml-2" />
 								</Button>
 							</div>
@@ -128,8 +137,9 @@ export default function RoleSelectionPage() {
 									onClick={() => handleRoleSelection("vendor")}
 									className="w-full bg-black hover:bg-black/80 cursor-pointer transition-all"
 									size="lg"
+									disabled={submitting}
 								>
-									Start Selling
+									{submitting ? "Please wait..." : "Start Selling"}
 									<ArrowRight className="w-4 h-4 ml-2" />
 								</Button>
 							</div>
