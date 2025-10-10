@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ArrowRight, CheckCircle2, Circle } from "lucide-react";
-import { useOnboarding } from "@/lib/onboarding-context";
+import { useOnboardingStore } from "@/lib/onboarding-store";
 
 // Progress Indicator Component
 interface ProgressIndicatorProps {
@@ -13,15 +13,15 @@ interface ProgressIndicatorProps {
 }
 
 export function ProgressIndicator({ steps }: ProgressIndicatorProps) {
-	const { state } = useOnboarding();
+	const { currentStep, isStepCompleted } = useOnboardingStore();
 
-	const progressPercentage = ((state.currentStep + 1) / steps.length) * 100;
+	const progressPercentage = ((currentStep + 1) / steps.length) * 100;
 
 	return (
 		<div className="w-full mb-8">
 			<div className="flex items-center justify-between mb-4">
 				<span className="text-sm text-muted-foreground">
-					Step {state.currentStep + 1} of {steps.length}
+					Step {currentStep + 1} of {steps.length}
 				</span>
 				<span className="text-sm text-muted-foreground">
 					{Math.round(progressPercentage)}% complete
@@ -32,9 +32,9 @@ export function ProgressIndicator({ steps }: ProgressIndicatorProps) {
 
 			<div className="flex items-center justify-between">
 				{steps.map((step, index) => {
-					const isCompleted = state.completedSteps.has(step.id);
-					const isCurrent = index === state.currentStep;
-					const isAccessible = index <= state.currentStep || isCompleted;
+					const isCompleted = isStepCompleted(step.id);
+					const isCurrent = index === currentStep;
+					const isAccessible = index <= currentStep || isCompleted;
 
 					return (
 						<div key={step.id} className="flex flex-col items-center relative">
@@ -124,7 +124,7 @@ export function OnboardingLayout({
 	onBack,
 	isLoading = false,
 }: OnboardingLayoutProps) {
-	const { state, prevStep, nextStep, canProceedToNext } = useOnboarding();
+	const { currentStep, prevStep, nextStep, canProceedToNext, errors } = useOnboardingStore();
 
 	const handleNext = () => {
 		if (onNext) {
@@ -169,13 +169,23 @@ export function OnboardingLayout({
 					)}
 
 					{/* Error Display */}
-					{Object.keys(state.errors).length > 0 && (
-						<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-							{Object.entries(state.errors).map(([stepId, error]) => (
-								<p key={stepId} className="text-sm text-red-800">
-									{error}
-								</p>
-							))}
+					{Object.keys(errors).length > 0 && (
+						<div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg shadow-sm">
+							<div className="flex items-start gap-3">
+								<div className="flex-shrink-0 mt-0.5">
+									<svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+										<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+									</svg>
+								</div>
+								<div className="flex-1">
+									<h3 className="text-sm font-semibold text-red-800 mb-1">Error</h3>
+									{Object.entries(errors).map(([stepId, error]) => (
+										<p key={stepId} className="text-sm text-red-700">
+											{error}
+										</p>
+									))}
+								</div>
+							</div>
 						</div>
 					)}
 
@@ -187,7 +197,8 @@ export function OnboardingLayout({
 					{/* Navigation */}
 					{(showBackButton || showNextButton) && (
 						<div className="flex items-center justify-between mt-8">
-							{showBackButton && state.currentStep > 0 ? (
+							{/* Back Button */}
+							{showBackButton && currentStep > 0 ? (
 								<Button
 									variant="outline"
 									onClick={handleBack}
@@ -197,7 +208,7 @@ export function OnboardingLayout({
 									Back
 								</Button>
 							) : (
-								<div /> // Spacer
+								<div className="w-1/2" /> 
 							)}
 
 							{showNextButton && (

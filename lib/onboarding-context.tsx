@@ -1,7 +1,14 @@
 // Onboarding Context - Centralized state management for the entire onboarding flow
 "use client";
 
-import React, { createContext, useContext, useReducer, useEffect } from "react";
+import React, {
+	createContext,
+	useContext,
+	useReducer,
+	useEffect,
+	useRef,
+} from "react";
+import { onboardingDraftAPI } from "@/lib/api";
 
 // Types for our onboarding system
 export type UserRole = "customer" | "vendor";
@@ -157,6 +164,7 @@ export function OnboardingProvider({
 	children: React.ReactNode;
 }) {
 	const [state, dispatch] = useReducer(onboardingReducer, initialState);
+	const draftVersionRef = useRef<number>(0);
 
 	// Persist onboarding data to localStorage
 	useEffect(() => {
@@ -166,6 +174,7 @@ export function OnboardingProvider({
 				const parsed = JSON.parse(savedData) as {
 					userRole?: UserRole;
 					stepData?: Record<string, Record<string, unknown>>;
+					currentStep?: number;
 				};
 				if (parsed.userRole) {
 					dispatch({ type: "SET_ROLE", payload: parsed.userRole });
@@ -175,10 +184,24 @@ export function OnboardingProvider({
 						dispatch({ type: "SET_STEP_DATA", payload: { stepId, data } });
 					});
 				}
+				if (typeof parsed.currentStep === "number") {
+					dispatch({ type: "GO_TO_STEP", payload: parsed.currentStep });
+				}
 			} catch (error) {
 				console.error("Error loading onboarding data:", error);
 			}
 		}
+	}, []);
+
+	// Optional role override from URL (?role=customer|vendor)
+	useEffect(() => {
+		try {
+			const params = new URLSearchParams(window.location.search);
+			const role = params.get("role");
+			if (role === "customer" || role === "vendor") {
+				dispatch({ type: "SET_ROLE", payload: role });
+			}
+		} catch {}
 	}, []);
 
 	useEffect(() => {
@@ -189,6 +212,83 @@ export function OnboardingProvider({
 		};
 		localStorage.setItem("vendora-onboarding", JSON.stringify(dataToSave));
 	}, [state.userRole, state.stepData, state.currentStep]);
+
+	// Load server draft when role is known
+	useEffect(() => {
+		if (!state.userRole) return;
+		let cancelled = false;
+		(async () => {
+			try {
+				const role: string = state.userRole as string;
+				const draft = await onboardingDraftAPI.get(role);
+				if (cancelled || !draft) return;
+				// Merge server draft into context
+				if (draft.stepData && typeof draft.stepData === "object") {
+					Object.entries(
+						draft.stepData as Record<string, Record<string, unknown>>
+					).forEach(([stepId, data]) => {
+						dispatch({ type: "SET_STEP_DATA", payload: { stepId, data } });
+					});
+				}
+				if (typeof draft.step === "number") {
+					dispatch({ type: "GO_TO_STEP", payload: draft.step });
+				}
+				draftVersionRef.current = draft.version ?? 0;
+			} catch (e) {
+				// Silent failure: localStorage still works
+				console.warn("Failed to load onboarding draft:", e);
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [state.userRole]);
+
+	// Debounced autosave to server drafts
+	useEffect(() => {
+		if (!state.userRole) return;
+		const timer = setTimeout(async () => {
+			try {
+				const role: string = state.userRole as string;
+				const saved = await onboardingDraftAPI.save({
+					role,
+					step: state.currentStep,
+					stepCompleted: false,
+					stepData: state.stepData,
+					version: draftVersionRef.current,
+				});
+				draftVersionRef.current = saved?.version ?? draftVersionRef.current;
+			} catch (e) {
+				// Leave retry to next change; localStorage remains source of truth offline
+				console.warn("Failed to save onboarding draft:", e);
+			}
+		}, 800);
+		return () => clearTimeout(timer);
+	}, [state.userRole, state.currentStep, state.stepData]);
+
+	// Read stepIndex from URL once role/totalSteps are known
+	useEffect(() => {
+		if (!state.userRole || state.totalSteps <= 0) return;
+		try {
+			const params = new URLSearchParams(window.location.search);
+			const idxStr = params.get("stepIndex");
+			const idx = idxStr ? parseInt(idxStr, 10) : NaN;
+			if (!Number.isNaN(idx)) {
+				const clamped = Math.max(0, Math.min(idx, state.totalSteps - 1));
+				dispatch({ type: "GO_TO_STEP", payload: clamped });
+			}
+		} catch {}
+		// run once when prerequisites become available
+	}, [state.userRole, state.totalSteps]);
+
+	// Sync URL when currentStep changes
+	useEffect(() => {
+		try {
+			const url = new URL(window.location.href);
+			url.searchParams.set("stepIndex", String(state.currentStep));
+			window.history.replaceState({}, "", url.toString());
+		} catch {}
+	}, [state.currentStep]);
 
 	const nextStep = () => dispatch({ type: "NEXT_STEP" });
 	const prevStep = () => dispatch({ type: "PREV_STEP" });

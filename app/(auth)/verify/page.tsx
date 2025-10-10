@@ -5,12 +5,14 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Loader2, Mail } from "lucide-react";
 import Link from "next/link";
-import axios from "axios";
+import { api } from "@/lib/api";
+import { useOnboardingStore } from "@/lib/onboarding-store";
 
 export default function VerifyEmailPage() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const token = searchParams.get("token");
+	const setRole = useOnboardingStore((state) => state.setRole);
 
 	const [status, setStatus] = useState<"loading" | "success" | "error">(
 		"loading"
@@ -25,51 +27,49 @@ export default function VerifyEmailPage() {
 			return;
 		}
 
-		// Call your backend verification endpoint
+		// Call backend verification endpoint
 		const verifyEmail = async () => {
 			try {
-				// const response = await fetch(`/api/auth/verify?token=${token}`);
-				// const data = await response.json();
-
-				const response = await axios.post(
-					`${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/auth/verify/${token}`
-				);
+				const response = await api.post(`/api/v1/auth/verify/${token}`);
 
 				if (response.status === 200) {
 					setStatus("success");
 					setMessage("Your email has been verified successfully!");
+					
+					// Get user role from backend response (defaults to customer)
+					const userRole = response.data?.data?.user?.role || "customer";
+					setRole(userRole as "customer" | "vendor");
+					
 					// Redirect to onboarding after 2 seconds
 					setTimeout(() => {
-						router.push("/onboarding");
+						router.push(`/onboarding?role=${userRole}&stepIndex=0`);
 					}, 2000);
 				} else {
 					setStatus("error");
 					setMessage(response.data.message || "Verification failed");
 				}
-			} catch (error) {
-				console.log(error);
+			} catch (error: unknown) {
 				setStatus("error");
-				setMessage("Something went wrong. Please try again.");
+				const msg = error instanceof Error ? error.message : "Something went wrong. Please try again.";
+				setMessage(msg);
 			}
 		};
 
 		verifyEmail();
-	}, [token, router]);
+	}, [token, router, setRole]);
 
 	const handleResendEmail = async () => {
 		setResending(true);
 		try {
-			// Call your backend to resend verification email
-			const response = await axios.post(
-				`${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/auth/resend-verification/${token}`
-			);
+			// Call backend to resend verification email (route aligned with backend)
+			const response = await api.post(`/api/v1/auth/resend/${token}`);
 
 			if (response.status === 200) {
 				setMessage("Verification email sent! Check your inbox.");
 			}
-		} catch (error) {
-			console.log(error);
-			setMessage("Failed to resend email. Please try again.");
+		} catch (error: unknown) {
+			const msg = error instanceof Error ? error.message : "Failed to resend email. Please try again.";
+			setMessage(msg);
 		} finally {
 			setResending(false);
 		}

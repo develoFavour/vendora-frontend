@@ -5,19 +5,19 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, Store, ArrowRight } from "lucide-react";
-import { useOnboarding } from "@/lib/onboarding-context";
+import { useOnboardingStore } from "@/lib/onboarding-store";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 export default function RoleSelectionPage() {
-	const { dispatch, state } = useOnboarding();
+	const setRole = useOnboardingStore((state) => state.setRole);
 	const router = useRouter();
 	const [submitting, setSubmitting] = useState(false);
 
 	const handleRoleSelection = (role: "customer" | "vendor") => {
 		if (submitting) return;
 		setSubmitting(true);
-		dispatch({ type: "SET_ROLE", payload: role });
+		setRole(role);
 		toast.success(
 			`Continuing as ${role === "customer" ? "Customer" : "Vendor"}`
 		);

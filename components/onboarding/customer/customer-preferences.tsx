@@ -4,7 +4,7 @@
 import { useEffect } from "react";
 import type { CheckedState } from "@radix-ui/react-checkbox";
 
-import { useOnboarding } from "@/lib/onboarding-context";
+import { useOnboardingStore } from "@/lib/onboarding-store";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/onboarding";
 import {
@@ -22,15 +22,22 @@ import {
 	SHOPPING_FREQUENCIES,
 	SPECIAL_PREFERENCES,
 } from "./constants";
-import { toast } from "sonner";
+import { toastPromise } from "@/lib/toast-helpers";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export function CustomerPreferences() {
-	const { state, setStepData, clearError, nextStep, setLoading, setError } =
-		useOnboarding();
+	const {
+		stepData,
+		setStepData,
+		clearError,
+		nextStep,
+		setLoading,
+		setError,
+		isLoading,
+	} = useOnboardingStore();
 
 	const preferences =
-		(state.stepData.preferences as Record<string, string | boolean>) || {};
+		(stepData.preferences as Record<string, string | boolean>) || {};
 
 	useEffect(() => {
 		// Clear any stale errors when this step mounts
@@ -46,7 +53,9 @@ export function CustomerPreferences() {
 
 	const handleNext = async () => {
 		if (!preferences.budgetRange || !preferences.shoppingFrequency) {
-			setError("preferences", "Please fill in all required fields");
+			const errorMsg = "Please fill in all required fields";
+			setError("preferences", errorMsg);
+			return;
 		}
 
 		setLoading(true);
@@ -69,7 +78,8 @@ export function CustomerPreferences() {
 				}
 			});
 
-			await toast.promise(
+			// Modern toast UI with proper error handling
+			await toastPromise(
 				customerOnboardingAPI.updatePreferences({
 					budgetRange: preferences.budgetRange as string,
 					shoppingFrequency: preferences.shoppingFrequency as string,
@@ -78,15 +88,26 @@ export function CustomerPreferences() {
 				}),
 				{
 					loading: "Saving your preferences...",
-					success: "Preferences saved",
+					success: "Preferences saved successfully!",
 					error: (err) =>
-						err instanceof Error ? err.message : "Failed to save preferences",
+						err instanceof Error
+							? err.message
+							: "Failed to save preferences. Please try again.",
 				}
 			);
+
 			setStepData("preferences", { ...preferences, specialPrefs });
+			clearError("preferences");
 			nextStep();
-		} catch (err) {
-			setError("preferences", err as string);
+		} catch (error: unknown) {
+			// Error already shown via toast, just update state and prevent navigation
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: "Failed to save preferences. Please check your connection and try again.";
+
+			setError("preferences", errorMessage);
+			console.error("Failed to save preferences:", error);
 		} finally {
 			setLoading(false);
 		}
@@ -171,7 +192,7 @@ export function CustomerPreferences() {
 			<div className="flex justify-end pt-4">
 				<Button
 					onClick={handleNext}
-					disabled={state.isLoading}
+					disabled={isLoading}
 					className="bg-black hover:bg-black/80 cursor-pointer transition-all disabled:opacity-60"
 				>
 					Continue

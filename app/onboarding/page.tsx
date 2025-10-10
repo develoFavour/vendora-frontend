@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useOnboarding } from "@/lib/onboarding-context";
+import { useOnboardingStore } from "@/lib/onboarding-store";
 import { OnboardingLayout } from "@/components/onboarding";
 import {
 	CustomerWelcome,
@@ -46,25 +46,25 @@ const VENDOR_STEPS = [
 ];
 
 export default function OnboardingPage() {
-	const { state } = useOnboarding();
+	const { userRole, currentStep, hydrated, isLoading } = useOnboardingStore();
 	const router = useRouter();
+
+	// Redirect if no role selected, but only after hydration
+	useEffect(() => {
+		if (!hydrated) return;
+		if (!userRole) {
+			router.push("/onboarding/role-selection");
+		}
+	}, [hydrated, userRole, router]);
 
 	// Check if onboarding is complete
 	const isComplete =
-		state.currentStep >=
-		(state.userRole === "vendor" ? VENDOR_STEPS.length : CUSTOMER_STEPS.length);
+		currentStep >=
+		(userRole === "vendor" ? VENDOR_STEPS.length : CUSTOMER_STEPS.length);
 
-	// Redirect if no role selected
-	useEffect(() => {
-		if (!state.userRole) {
-			router.push("/onboarding/role-selection");
-			return;
-		}
-	}, [state.userRole, router]);
-
-	if (!state.userRole) {
-		return null; // Will redirect via useEffect
-	}
+	// Wait for hydration before rendering; then require role
+	if (!hydrated) return null;
+	if (!userRole) return null; // redirect runs in effect
 
 	// Show completion screen if onboarding is done
 	if (isComplete) {
@@ -80,10 +80,9 @@ export default function OnboardingPage() {
 	}
 
 	// Get current steps based on role
-	const currentSteps =
-		state.userRole === "vendor" ? VENDOR_STEPS : CUSTOMER_STEPS;
+	const currentSteps = userRole === "vendor" ? VENDOR_STEPS : CUSTOMER_STEPS;
 
-	const currentStepData = currentSteps[state.currentStep];
+	const currentStepData = currentSteps[currentStep];
 	const CurrentStepComponent = currentStepData?.component;
 
 	if (!CurrentStepComponent) {
@@ -102,15 +101,13 @@ export default function OnboardingPage() {
 	return (
 		<OnboardingLayout
 			steps={currentSteps}
-			title={`Welcome to Vendora${
-				state.userRole === "vendor" ? " Vendor" : ""
-			}`}
+			title={`Welcome to Vendora${userRole === "vendor" ? " Vendor" : ""}`}
 			description={
-				state.userRole === "vendor"
+				userRole === "vendor"
 					? "Let's set up your store and get you ready to start selling"
 					: "Let's personalize your shopping experience"
 			}
-			isLoading={state.isLoading}
+			isLoading={isLoading}
 		>
 			<CurrentStepComponent />
 		</OnboardingLayout>

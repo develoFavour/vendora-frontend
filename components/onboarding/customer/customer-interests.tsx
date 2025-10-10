@@ -1,17 +1,17 @@
 "use client";
 
-import { useOnboarding } from "@/lib/onboarding-context";
+import { useOnboardingStore } from "@/lib/onboarding-store";
 import { CategorySelector } from "@/components/onboarding";
 import { customerOnboardingAPI } from "@/lib/api";
 import { CATEGORIES } from "./constants";
-import { toast } from "sonner";
+import { toastPromise } from "@/lib/toast-helpers";
 
 export function CustomerInterests() {
-	const { state, setStepData, nextStep, setLoading, setError, clearError } =
-		useOnboarding();
+	const { stepData, setStepData, nextStep, setLoading, setError, clearError } =
+		useOnboardingStore();
 
 	const interestsData =
-		(state.stepData.interests as { categories?: string[] }) || {};
+		(stepData.interests as { categories?: string[] }) || {};
 	const selectedCategories = interestsData.categories || [];
 
 	const handleCategoryChange = (categories: string[]) => {
@@ -28,23 +28,31 @@ export function CustomerInterests() {
 		clearError("interests");
 
 		try {
-			await toast.promise(
+			// Modern toast UI with proper error handling
+			await toastPromise(
 				customerOnboardingAPI.updateInterests(selectedCategories),
 				{
 					loading: "Saving your interests...",
-					success: "Interests saved successfully",
+					success: "Interests saved successfully!",
 					error: (err) =>
-						err instanceof Error ? err.message : "Failed to save interests",
+						err instanceof Error
+							? err.message
+							: "Failed to save interests. Please try again.",
 				}
 			);
+
 			setStepData("interests", { categories: selectedCategories });
 			clearError("interests");
 			nextStep();
-		} catch (error) {
-			setError(
-				"interests",
-				error instanceof Error ? error.message : "Failed to save interests"
-			);
+		} catch (error: unknown) {
+			// Error already shown via toast, just update state and prevent navigation
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: "Failed to save interests. Please check your connection and try again.";
+
+			setError("interests", errorMessage);
+			console.error("Failed to save interests:", error);
 		} finally {
 			setLoading(false);
 		}

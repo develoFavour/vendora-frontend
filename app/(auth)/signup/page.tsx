@@ -16,7 +16,7 @@ import {
 	Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -50,34 +50,34 @@ export default function SignupPage() {
 			return;
 		}
 
-		// Debug: Log the environment variable
-		const apiUrl = process.env.NEXT_PUBLIC_BASE_API_URL;
-		console.log("API URL from env:", apiUrl);
-		console.log("Full URL:", `${apiUrl}/api/v1/auth/register`);
-
 		try {
-			const response = await axios.post(
-				`${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/auth/register`,
-				{ formData }
-			);
+			const payload = {
+				name: formData.name,
+				email: formData.email,
+				phone: formData.phone,
+				address: formData.address,
+				password: formData.password,
+			};
+			const response = await api.post("/api/v1/auth/register", payload);
+			const token: string | undefined = response.data?.data?.accessToken;
 
-			console.log("RESPONSE:", response);
-			const data = response;
-
-			if (response) {
+			if (response?.status && response.status < 400) {
 				setSuccess(true);
-
 				toast.success(
 					"Account created successfully! A verification email has been sent to your email, please verify your account."
 				);
-				localStorage.setItem("accessToken", data.data.accessToken);
-				router.push("/login");
+				if (token) {
+					localStorage.setItem("accessToken", token);
+				}
+				// Pass the email for display on the verification page
+				router.push(`/signup/verification-sent?email=${encodeURIComponent(formData.email)}`);
 			} else {
 				setError("Signup failed");
 			}
-		} catch (err) {
-			console.log(err);
-			setError("Something went wrong. Please try again.");
+		} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+			setError(message);
+			toast.error(message);
 		} finally {
 			setLoading(false);
 		}
@@ -120,104 +120,6 @@ export default function SignupPage() {
 			)}
 
 			<form onSubmit={handleSubmit} className="space-y-6">
-				{/* Role selection */}
-				{/* <div>
-					<label className="block text-sm font-medium text-gray-900 mb-3">
-						I want to
-					</label>
-					<div className="grid grid-cols-2 gap-3">
-						<button
-							type="button"
-							onClick={() => setSelectedRole("customer")}
-							className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${
-								selectedRole === "customer"
-									? "border-sage-600/60 backdrop-blur-md bg-sage-100/40 shadow-lg scale-[1.02]"
-									: "border-white/40 backdrop-blur-sm bg-white/30 hover:border-sage-400/50 hover:bg-white/40 hover:scale-[1.01]"
-							}`}
-						>
-							<div className="flex flex-col items-center gap-2">
-								<div
-									className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-										selectedRole === "customer"
-											? "bg-sage-600 text-white shadow-lg"
-											: "bg-gray-100/80 text-gray-600 group-hover:bg-gray-200/80"
-									}`}
-								>
-									<svg
-										className="w-6 h-6"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-										/>
-									</svg>
-								</div>
-								<div className="text-center">
-									<div className="font-semibold text-gray-900">
-										Shop Products
-									</div>
-									<div className="text-xs text-gray-700">Customer Account</div>
-								</div>
-							</div>
-							{selectedRole === "customer" && (
-								<div className="absolute top-2 right-2 animate-in zoom-in duration-200">
-									<CheckCircle2 className="w-5 h-5 text-sage-600" />
-								</div>
-							)}
-						</button>
-
-						<button
-							type="button"
-							onClick={() => setSelectedRole("vendor")}
-							className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${
-								selectedRole === "vendor"
-									? "border-terracotta-600/60 backdrop-blur-md bg-terracotta-100/40 shadow-lg scale-[1.02]"
-									: "border-white/40 backdrop-blur-sm bg-white/30 hover:border-terracotta-400/50 hover:bg-white/40 hover:scale-[1.01]"
-							}`}
-						>
-							<div className="flex flex-col items-center gap-2">
-								<div
-									className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-										selectedRole === "vendor"
-											? "bg-terracotta-600 text-white shadow-lg"
-											: "bg-gray-100/80 text-gray-600 group-hover:bg-gray-200/80"
-									}`}
-								>
-									<svg
-										className="w-6 h-6"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-										/>
-									</svg>
-								</div>
-								<div className="text-center">
-									<div className="font-semibold text-gray-900">
-										Sell Products
-									</div>
-									<div className="text-xs text-gray-700">Vendor Account</div>
-								</div>
-							</div>
-							{selectedRole === "vendor" && (
-								<div className="absolute top-2 right-2 animate-in zoom-in duration-200">
-									<CheckCircle2 className="w-5 h-5 text-terracotta-600" />
-								</div>
-							)}
-						</button>
-					</div>
-				</div> */}
-
 				{/* Form fields with glassmorphic styling */}
 				<div className="space-y-4">
 					<div className="relative group">

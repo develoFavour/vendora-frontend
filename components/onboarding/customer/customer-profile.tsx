@@ -2,30 +2,31 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useOnboarding } from "@/lib/onboarding-context";
+import { useOnboardingStore } from "@/lib/onboarding-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/onboarding";
 import { customerOnboardingAPI } from "@/lib/api";
 import { ArrowRight } from "lucide-react";
-import { toast } from "sonner";
+import { toastPromise } from "@/lib/toast-helpers";
 import Image from "next/image";
 import { OnboardingSuccessCelebration } from "@/components/onboarding-success-celebration";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export function CustomerProfile() {
-	const { state, setStepData, clearError, setLoading, setError } =
-		useOnboarding();
+	const { stepData, setStepData, clearError, setLoading, setError, isLoading } =
+		useOnboardingStore();
 	const router = useRouter();
 	const [profilePicture, setProfilePicture] = useState<File | null>(null);
 	const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 	const [showCelebration, setShowCelebration] = useState(false);
 	const mountedRef = useRef(true);
 
-	const profile = (state.stepData.profile as Record<string, string>) || {};
+	const profileData = (stepData.profile as Record<string, string>) || {};
 	const handleProfileChange = (key: string, value: string) => {
-		const newProfile = { ...profile, [key]: value };
+		const newProfile = { ...profileData, [key]: value };
 		setStepData("profile", newProfile);
 		clearError("profile");
 	};
@@ -75,8 +76,9 @@ export function CustomerProfile() {
 
 	const handleNext = async () => {
 		// Validate required fields
-		if (!profile.location) {
-			setError("profile", "Please enter your location");
+		if (!profileData.location) {
+			const errorMsg = "Please enter your location";
+			setError("profile", errorMsg);
 			return;
 		}
 
@@ -85,17 +87,20 @@ export function CustomerProfile() {
 		setShowCelebration(false);
 
 		try {
-			await toast.promise(
+			// Modern toast UI with proper error handling
+			await toastPromise(
 				customerOnboardingAPI.completeOnboarding({
-					location: profile.location,
-					bio: profile.bio || "",
+					location: profileData.location,
+					bio: profileData.bio || "",
 					profilePicture: profilePicture || undefined,
 				}),
 				{
-					loading: "Saving your profile...",
-					success: "Profile saved",
+					loading: "Completing your profile...",
+					success: "Profile completed successfully!",
 					error: (err) =>
-						err instanceof Error ? err.message : "Failed to complete profile",
+						err instanceof Error
+							? err.message
+							: "Failed to complete profile. Please try again.",
 				}
 			);
 
@@ -103,25 +108,29 @@ export function CustomerProfile() {
 			if (!mountedRef.current) return;
 
 			setStepData("profile", {
-				...profile,
+				...profileData,
 				profilePicture: profilePicture?.name,
 			});
 			clearError("profile");
-			// Show celebration and redirect based on role
+
+			// Show celebration and redirect to customer dashboard
 			setShowCelebration(true);
-			const role = state.userRole;
-			const destination =
-				role === "vendor" ? "/vendor/dashboard" : "/customer/dashboard";
+			const destination = "/customer/dashboard";
 			setTimeout(() => {
 				if (mountedRef.current) router.push(destination);
 			}, 7500);
-		} catch (error) {
+		} catch (error: unknown) {
 			// Ensure we do not show celebration on error
 			if (mountedRef.current) setShowCelebration(false);
-			setError(
-				"profile",
-				error instanceof Error ? error.message : "Failed to complete profile"
-			);
+
+			// Error already shown via toast, just update state and prevent navigation
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: "Failed to complete profile. Please check your connection and try again.";
+
+			setError("profile", errorMessage);
+			console.error("Failed to complete profile:", error);
 		} finally {
 			if (mountedRef.current) setLoading(false);
 		}
@@ -142,7 +151,7 @@ export function CustomerProfile() {
 			<div className="grid gap-6">
 				<FormField label="Location" required>
 					<Input
-						value={profile.location || ""}
+						value={profileData.location || ""}
 						onChange={(e) => handleProfileChange("location", e.target.value)}
 						placeholder="City, State or ZIP code"
 					/>
@@ -150,7 +159,7 @@ export function CustomerProfile() {
 
 				<FormField label="Bio (optional)">
 					<Textarea
-						value={profile.bio || ""}
+						value={profileData.bio || ""}
 						onChange={(e) => handleProfileChange("bio", e.target.value)}
 						placeholder="Tell us a bit about yourself and what you're looking for..."
 						rows={3}
@@ -205,7 +214,7 @@ export function CustomerProfile() {
 			<div className="flex justify-end pt-4">
 				<Button
 					onClick={handleNext}
-					disabled={state.isLoading}
+					disabled={isLoading}
 					className="bg-black hover:bg-black/80 cursor-pointer transition-all disabled:opacity-60"
 				>
 					Complete Setup

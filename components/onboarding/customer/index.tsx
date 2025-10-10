@@ -1,6 +1,6 @@
 // Customer Onboarding Steps
 import React from "react";
-import { useOnboarding } from "@/lib/onboarding-context";
+import { useOnboardingStore } from "@/lib/onboarding-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -11,7 +11,7 @@ export { CustomerProfile } from "./customer-profile";
 
 // Customer Welcome Step
 export function CustomerWelcome() {
-	const { setStepData, nextStep } = useOnboarding();
+	const { setStepData, nextStep } = useOnboardingStore();
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
