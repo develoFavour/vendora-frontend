@@ -5,8 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Eye, Package, Clock, Loader2, ShoppingBag, CreditCard } from "lucide-react";
-import { useOrders } from "@/hooks/use-orders";
+import { Search, Eye, Package, Clock, Loader2, ShoppingBag, CreditCard, CheckCircle2 } from "lucide-react";
+import { useOrders, useConfirmReceipt } from "@/hooks/use-orders";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -16,6 +16,7 @@ export default function CustomerOrdersPage() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const { data: ordersData, isLoading } = useOrders();
+	const confirmMutation = useConfirmReceipt();
 	const orders = ordersData?.data?.orders || [];
 
 	const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -139,13 +140,25 @@ export default function CustomerOrdersPage() {
 												Complete Payment
 											</Link>
 										</Button>
+									) : order.status.toLowerCase() === "shipped" ? (
+										<Button
+											onClick={() => confirmMutation.mutate(order.id)}
+											disabled={confirmMutation.isPending}
+											className="rounded-xl h-12 px-6 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20"
+										>
+											{confirmMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+											Confirm Receipt
+										</Button>
 									) : (
 										<Button
+											asChild
 											variant="outline"
 											className="rounded-xl h-12 px-6 border-white/10 bg-white/5 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all"
 										>
-											<Eye className="mr-2 h-4 w-4" />
-											Examine Details
+											<Link href={`/buyer/dashboard/orders/${order.id}`}>
+												<Eye className="mr-2 h-4 w-4" />
+												Examine Details
+											</Link>
 										</Button>
 									)}
 								</div>

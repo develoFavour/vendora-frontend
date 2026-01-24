@@ -33,3 +33,21 @@ export const usePlaceOrder = () => {
         },
     });
 };
+
+export const useConfirmReceipt = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: orderAPI.confirmReceipt,
+        onSuccess: (data, id) => {
+            queryClient.invalidateQueries({ queryKey: ["orders"] });
+            queryClient.invalidateQueries({ queryKey: ["orders", id] });
+            queryClient.invalidateQueries({ queryKey: ["vendor-orders"] });
+            queryClient.invalidateQueries({ queryKey: ["vendor-stats"] });
+            toast.success("Artifact acquisition confirmed!");
+        },
+        onError: (error: any) => {
+            toast.error(error.message || "Failed to confirm receipt");
+        },
+    });
+};

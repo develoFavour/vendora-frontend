@@ -463,6 +463,10 @@ export const orderAPI = {
 		const res = await api.get(`/api/v1/orders/${id}`);
 		return res.data;
 	},
+	confirmReceipt: async (id: string) => {
+		const res = await api.put(`/api/v1/orders/${id}/confirm-receipt`);
+		return res.data;
+	},
 };
 
 // Payment API functions
