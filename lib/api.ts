@@ -469,6 +469,25 @@ export const orderAPI = {
 	},
 };
 
+export const reviewsAPI = {
+	create: async (data: any) => {
+		const res = await api.post("/api/v1/reviews", data);
+		return res.data;
+	},
+	getProductReviews: async (productId: string) => {
+		const res = await api.get(`/api/v1/products/${productId}/reviews`);
+		return res.data;
+	},
+	getVendorReviews: async () => {
+		const res = await api.get("/api/v1/vendor/reviews");
+		return res.data;
+	},
+	respond: async (id: string, response: string) => {
+		const res = await api.post(`/api/v1/vendor/reviews/${id}/respond`, { response });
+		return res.data;
+	}
+};
+
 // Payment API functions
 export const paymentAPI = {
 	createIntent: async (orderId: string) => {

@@ -13,13 +13,15 @@ import {
     Loader2,
     Calendar,
     Receipt,
-    ExternalLink
+    ExternalLink,
+    Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useOrder, useConfirmReceipt } from "@/hooks/use-orders";
+import { ReviewModal } from "@/components/customer/ReviewModal";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -28,6 +30,9 @@ export default function OrderDetailsPage() {
     const params = useParams();
     const router = useRouter();
     const orderId = params.id as string;
+
+    // UI State
+    const [activeReviewProduct, setActiveReviewProduct] = React.useState<any>(null);
 
     const { data: orderData, isLoading } = useOrder(orderId);
     const confirmMutation = useConfirmReceipt();
@@ -132,9 +137,22 @@ export default function OrderDetailsPage() {
                                             <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent" />
                                         </div>
                                         <div className="flex-1 flex flex-col justify-between py-1">
-                                            <div>
-                                                <h3 className="text-lg font-bold text-white tracking-tight">{item.name}</h3>
-                                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">Unit: ${item.price.toLocaleString()} • Qty: {item.quantity}</p>
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h3 className="text-lg font-bold text-white tracking-tight">{item.name}</h3>
+                                                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">Unit: ${item.price.toLocaleString()} • Qty: {item.quantity}</p>
+                                                </div>
+                                                {order.status.toLowerCase() === "delivered" && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setActiveReviewProduct(item)}
+                                                        className="h-8 rounded-full border-primary/20 bg-primary/5 text-[8px] font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-white transition-all scale-90"
+                                                    >
+                                                        <Star className="mr-2 h-3 w-3 fill-current" />
+                                                        Leave Testimony
+                                                    </Button>
+                                                )}
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <Badge className="bg-white/5 border-white/10 text-[8px] uppercase tracking-widest text-zinc-400">Merchant SKU: {item.productId.slice(-8)}</Badge>
@@ -275,6 +293,16 @@ export default function OrderDetailsPage() {
                     </div>
                 </div>
             </div>
+
+            {activeReviewProduct && (
+                <ReviewModal
+                    isOpen={!!activeReviewProduct}
+                    onClose={() => setActiveReviewProduct(null)}
+                    productId={activeReviewProduct.productId}
+                    orderId={orderId}
+                    productName={activeReviewProduct.name}
+                />
+            )}
         </div>
     );
 }

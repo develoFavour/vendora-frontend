@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { usePublicProductById } from "@/hooks/use-products";
+import { useProductReviews } from "@/hooks/use-reviews";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/hooks/use-wishlist";
 import { useAddToCart, useCart, useUpdateCartQuantity } from "@/hooks/use-cart";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,8 +34,11 @@ export default function ProductDetailPage({
 
 	// Data Fetching
 	const { data: product, isLoading: isProductLoading } = usePublicProductById(id);
+	const { data: reviewsRes } = useProductReviews(id);
 	const { data: wishlist } = useWishlist();
 	const { data: cart } = useCart();
+
+	const reviews = reviewsRes?.data?.reviews || [];
 
 	// Mutations
 	const addToWishlist = useAddToWishlist();
@@ -410,6 +414,12 @@ export default function ProductDetailPage({
 								>
 									Process
 								</TabsTrigger>
+								<TabsTrigger
+									value="reviews"
+									className="rounded-none border-b-2 border-transparent px-8 pb-4 text-sm font-bold uppercase tracking-widest text-zinc-500 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-white hover:text-zinc-300"
+								>
+									Testimonies ({reviews?.length || 0})
+								</TabsTrigger>
 							</TabsList>
 							<TabsContent
 								value="details"
@@ -445,6 +455,56 @@ export default function ProductDetailPage({
 								nestled in our sustainable, eco-friendly packaging. We ship
 								within 2-4 business days via global luxury couriers to ensure
 								your treasure arrives in perfect condition.
+							</TabsContent>
+							<TabsContent
+								value="reviews"
+								className="mt-8 space-y-8"
+							>
+								{reviews?.length === 0 ? (
+									<div className="py-12 text-center text-zinc-500 font-serif italic text-lg">
+										No public testimonies yet for this artifact...
+									</div>
+								) : (
+									<div className="space-y-6">
+										{reviews.map((rev: any, idx: number) => (
+											<Card key={idx} className="p-8 bg-white/5 border-white/5 backdrop-blur-xl rounded-[2rem] space-y-6">
+												<div className="flex items-center justify-between">
+													<div className="flex items-center gap-4">
+														<div className="h-10 w-10 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center overflow-hidden">
+															{rev.userImage ? (
+																<img src={rev.userImage} className="w-full h-full object-cover" />
+															) : (
+																<span className="text-sm font-bold text-zinc-500">{rev.userName[0]}</span>
+															)}
+														</div>
+														<div>
+															<p className="text-sm font-bold text-white">{rev.userName}</p>
+															<p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">{new Date(rev.createdAt).toLocaleDateString()}</p>
+														</div>
+													</div>
+													<div className="flex gap-1 text-primary">
+														{[...Array(5)].map((_, i) => (
+															<Star key={i} className={cn("h-3 w-3", i < rev.rating ? "fill-current" : "text-zinc-800")} />
+														))}
+													</div>
+												</div>
+												<p className="text-zinc-300 leading-relaxed italic font-serif">"{rev.comment}"</p>
+
+												{rev.response && (
+													<div className="mt-6 p-6 rounded-2xl bg-primary/5 border border-primary/10 relative">
+														<div className="absolute top-0 left-6 -translate-y-1/2 p-2 bg-zinc-950 border border-white/5 rounded-full">
+															<ShieldCheck className="h-4 w-4 text-primary" />
+														</div>
+														<div className="space-y-2">
+															<p className="text-[10px] font-bold uppercase tracking-widest text-primary">Artisan Response</p>
+															<p className="text-sm text-zinc-400 font-medium italic">"{rev.response}"</p>
+														</div>
+													</div>
+												)}
+											</Card>
+										))}
+									</div>
+								)}
 							</TabsContent>
 						</Tabs>
 					</div>
