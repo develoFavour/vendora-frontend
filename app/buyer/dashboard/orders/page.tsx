@@ -1,18 +1,32 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Eye, Package, Clock, Loader2, ShoppingBag } from "lucide-react";
+import { Search, Eye, Package, Clock, Loader2, ShoppingBag, CreditCard } from "lucide-react";
 import { useOrders } from "@/hooks/use-orders";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useSearchParams, useRouter } from "next/navigation";
+import { PaymentSuccessModal } from "@/components/checkout/PaymentSuccessModal";
 
 export default function CustomerOrdersPage() {
+	const searchParams = useSearchParams();
+	const router = useRouter();
 	const { data: ordersData, isLoading } = useOrders();
 	const orders = ordersData?.data?.orders || [];
+
+	const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+
+	useEffect(() => {
+		if (searchParams.get("payment_intent_id") === "success") {
+			setIsSuccessModalOpen(true);
+			// Clean URL without refresh
+			router.replace("/buyer/dashboard/orders");
+		}
+	}, [searchParams, router]);
 
 	const getStatusColor = (status: string) => {
 		switch (status.toLowerCase()) {
@@ -115,19 +129,36 @@ export default function CustomerOrdersPage() {
 
 								<div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-4 border-t md:border-t-0 md:border-l border-white/5 pt-6 md:pt-0 md:pl-10">
 									<div className="text-3xl font-bold text-white tracking-tighter">${order.total?.toLocaleString()}</div>
-									<Button
-										variant="outline"
-										className="rounded-xl h-12 px-6 border-white/10 bg-white/5 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all"
-									>
-										<Eye className="mr-2 h-4 w-4" />
-										Examine Details
-									</Button>
+									{order.status.toLowerCase() === "pending" ? (
+										<Button
+											asChild
+											className="rounded-xl h-12 px-6 bg-primary hover:bg-primary/90 text-white text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
+										>
+											<Link href={`/buyer/dashboard/checkout?orderId=${order.id}`}>
+												<CreditCard className="mr-2 h-4 w-4" />
+												Complete Payment
+											</Link>
+										</Button>
+									) : (
+										<Button
+											variant="outline"
+											className="rounded-xl h-12 px-6 border-white/10 bg-white/5 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all"
+										>
+											<Eye className="mr-2 h-4 w-4" />
+											Examine Details
+										</Button>
+									)}
 								</div>
 							</div>
 						</Card>
 					))
 				)}
 			</div>
+
+			<PaymentSuccessModal
+				isOpen={isSuccessModalOpen}
+				onClose={() => setIsSuccessModalOpen(false)}
+			/>
 		</div>
 	);
 }

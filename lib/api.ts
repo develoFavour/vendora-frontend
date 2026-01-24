@@ -459,4 +459,16 @@ export const orderAPI = {
 		const res = await api.get("/api/v1/orders");
 		return res.data;
 	},
+	get: async (id: string) => {
+		const res = await api.get(`/api/v1/orders/${id}`);
+		return res.data;
+	},
+};
+
+// Payment API functions
+export const paymentAPI = {
+	createIntent: async (orderId: string) => {
+		const res = await api.post("/api/v1/payments/create-intent", { orderId });
+		return res.data;
+	},
 };

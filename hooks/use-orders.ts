@@ -10,19 +10,23 @@ export const useOrders = () => {
     });
 };
 
+export const useOrder = (id: string | null) => {
+    return useQuery({
+        queryKey: ["orders", id],
+        queryFn: () => orderAPI.get(id!),
+        enabled: !!id,
+    });
+};
+
 export const usePlaceOrder = () => {
     const queryClient = useQueryClient();
     const router = useRouter();
 
     return useMutation({
         mutationFn: orderAPI.place,
-        onSuccess: (data: any) => {
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["cart"] });
             queryClient.invalidateQueries({ queryKey: ["orders"] });
-            toast.success("Order placed successfully! A merchant will reach out soon.");
-
-            // Redirect to a success page or orders page
-            router.push("/buyer/dashboard/orders");
         },
         onError: (error: any) => {
             toast.error(error.message || "Failed to place order. Please try again.");
