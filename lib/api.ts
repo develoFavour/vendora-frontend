@@ -459,6 +459,10 @@ export const orderAPI = {
 		const res = await api.get("/api/v1/orders");
 		return res.data;
 	},
+	overview: async () => {
+		const res = await api.get("/api/v1/orders/overview");
+		return res.data;
+	},
 	get: async (id: string) => {
 		const res = await api.get(`/api/v1/orders/${id}`);
 		return res.data;

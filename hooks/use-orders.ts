@@ -10,6 +10,13 @@ export const useOrders = () => {
     });
 };
 
+export const useBuyerOverview = () => {
+    return useQuery({
+        queryKey: ["buyer-overview"],
+        queryFn: orderAPI.overview,
+    });
+};
+
 export const useOrder = (id: string | null) => {
     return useQuery({
         queryKey: ["orders", id],
