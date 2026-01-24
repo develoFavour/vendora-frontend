@@ -472,3 +472,19 @@ export const paymentAPI = {
 		return res.data;
 	},
 };
+
+// Vendor Order API functions
+export const vendorOrdersAPI = {
+	list: async () => {
+		const res = await api.get("/api/v1/vendor/orders");
+		return res.data;
+	},
+	get: async (id: string) => {
+		const res = await api.get(`/api/v1/vendor/orders/${id}`);
+		return res.data;
+	},
+	updateStatus: async (id: string, status: string, trackingNumber?: string) => {
+		const res = await api.put(`/api/v1/vendor/orders/${id}/status`, { status, trackingNumber });
+		return res.data;
+	},
+};
