@@ -9,6 +9,13 @@ export const useVendorOrders = () => {
     });
 };
 
+export const useVendorStats = () => {
+    return useQuery({
+        queryKey: ["vendor-stats"],
+        queryFn: vendorOrdersAPI.stats,
+    });
+};
+
 export const useVendorOrder = (id: string | null) => {
     return useQuery({
         queryKey: ["vendor-orders", id],

@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
 	DollarSign,
 	Package,
@@ -14,218 +15,169 @@ import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
 
+import {
+	useVendorStats,
+	useVendorOrders
+} from "@/hooks/use-vendor-orders";
+import { Loader2 } from "lucide-react";
+
 export default function VendorDashboardPage() {
 	const { user } = useAuthStore();
+	const { data: statsRes, isLoading: isStatsLoading } = useVendorStats();
+	const { data: ordersRes, isLoading: isOrdersLoading } = useVendorOrders();
+
+	const stats = statsRes?.data?.stats;
+	const recentOrders = ordersRes?.data?.orders?.slice(0, 5) || [];
 	const firstName = user?.name ? user.name.split(" ")[0] : "Vendor";
 
+	if (isStatsLoading || isOrdersLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center text-primary">
+				<Loader2 className="h-8 w-8 animate-spin" />
+			</div>
+		);
+	}
+
 	return (
-		<div className="p-8">
+		<div className="p-8 max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700">
 			{/* Header */}
-			<div className="mb-8">
-				<h1 className="font-serif text-3xl font-bold">Welcome back, {firstName}!</h1>
-				<p className="mt-2 text-muted-foreground">
-					Here&apos;s what&apos;s happening with your store today.
-				</p>
+			<div className="flex flex-col gap-1">
+				<p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Merchant Overview</p>
+				<h1 className="font-bold text-4xl tracking-tighter text-zinc-900">Welcome back, {firstName}.</h1>
+				<p className="text-zinc-500 text-sm font-medium italic">Your artisan store is performing beautifully today.</p>
 			</div>
 
 			{/* Stats Grid */}
 			<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-				<Card className="p-6">
-					<div className="flex items-center justify-between">
-						<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-							<DollarSign className="h-6 w-6 text-primary" />
+				<Card className="p-6 border-border bg-card shadow-sm hover:shadow-md transition-all">
+					<div className="flex items-center gap-4">
+						<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900">
+							<DollarSign className="h-6 w-6 text-white" />
 						</div>
-						<div className="flex items-center gap-1 text-sm font-medium text-green-600">
-							<ArrowUpRight className="h-4 w-4" />
-							12.5%
+						<div>
+							<p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none mb-1">Gross Revenue</p>
+							<div className="text-3xl font-bold tracking-tighter text-zinc-900">
+								${stats?.totalRevenue?.toLocaleString()}
+							</div>
 						</div>
-					</div>
-					<div className="mt-4">
-						<div className="text-2xl font-bold">$12,426</div>
-						<div className="text-sm text-muted-foreground">Total Revenue</div>
-					</div>
-					<div className="mt-2 text-xs text-muted-foreground">
-						+$1,240 from last month
 					</div>
 				</Card>
 
-				<Card className="p-6">
-					<div className="flex items-center justify-between">
-						<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10">
-							<ShoppingBag className="h-6 w-6 text-accent" />
+				<Card className="p-6 border-border bg-card shadow-sm hover:shadow-md transition-all">
+					<div className="flex items-center gap-4">
+						<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+							<ShoppingBag className="h-6 w-6 text-primary" />
 						</div>
-						<div className="flex items-center gap-1 text-sm font-medium text-green-600">
-							<ArrowUpRight className="h-4 w-4" />
-							8.2%
+						<div>
+							<p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none mb-1">Total Orders</p>
+							<div className="text-3xl font-bold tracking-tighter text-zinc-900">
+								{stats?.totalOrders || 0}
+							</div>
 						</div>
-					</div>
-					<div className="mt-4">
-						<div className="text-2xl font-bold">342</div>
-						<div className="text-sm text-muted-foreground">Total Orders</div>
-					</div>
-					<div className="mt-2 text-xs text-muted-foreground">
-						+26 from last month
 					</div>
 				</Card>
 
-				<Card className="p-6">
-					<div className="flex items-center justify-between">
-						<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-							<Package className="h-6 w-6 text-primary" />
+				<Card className="p-6 border-border bg-card shadow-sm hover:shadow-md transition-all">
+					<div className="flex items-center gap-4">
+						<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-50 border border-zinc-100">
+							<Package className="h-6 w-6 text-zinc-400" />
 						</div>
-						<div className="flex items-center gap-1 text-sm font-medium text-red-600">
-							<ArrowDownRight className="h-4 w-4" />
-							3.1%
+						<div>
+							<p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none mb-1">Listed Artifacts</p>
+							<div className="text-3xl font-bold tracking-tighter text-zinc-900">
+								{stats?.totalProducts || 0}
+							</div>
 						</div>
-					</div>
-					<div className="mt-4">
-						<div className="text-2xl font-bold">89</div>
-						<div className="text-sm text-muted-foreground">Active Products</div>
-					</div>
-					<div className="mt-2 text-xs text-muted-foreground">
-						-3 from last month
 					</div>
 				</Card>
 
-				<Card className="p-6">
-					<div className="flex items-center justify-between">
-						<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10">
-							<TrendingUp className="h-6 w-6 text-accent" />
+				<Card className="p-6 border-border bg-card shadow-sm hover:shadow-md transition-all">
+					<div className="flex items-center gap-4">
+						<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-50 border border-zinc-100">
+							<TrendingUp className="h-6 w-6 text-zinc-400" />
 						</div>
-						<div className="flex items-center gap-1 text-sm font-medium text-green-600">
-							<ArrowUpRight className="h-4 w-4" />
-							15.3%
+						<div>
+							<p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none mb-1">Average Value</p>
+							<div className="text-3xl font-bold tracking-tighter text-zinc-900">
+								${Math.round(stats?.avgOrderValue || 0).toLocaleString()}
+							</div>
 						</div>
-					</div>
-					<div className="mt-4">
-						<div className="text-2xl font-bold">4.8</div>
-						<div className="text-sm text-muted-foreground">Average Rating</div>
-					</div>
-					<div className="mt-2 text-xs text-muted-foreground">
-						Based on 127 reviews
 					</div>
 				</Card>
 			</div>
 
-			{/* Recent Orders & Top Products */}
-			<div className="mt-8 grid gap-6 lg:grid-cols-2">
+			<div className="grid gap-8 lg:grid-cols-3">
 				{/* Recent Orders */}
-				<Card className="p-6">
-					<div className="mb-6 flex items-center justify-between">
-						<h2 className="font-serif text-xl font-semibold">Recent Orders</h2>
-						<Button variant="ghost" size="sm" asChild>
-							<Link href="/vendor/dashboard/orders">View all</Link>
+				<Card className="lg:col-span-2 overflow-hidden border-border bg-card shadow-lg shadow-zinc-200/50 rounded-[2rem]">
+					<div className="p-6 border-b border-zinc-50 bg-zinc-50/30 flex items-center justify-between">
+						<h2 className="font-bold text-lg text-zinc-900 tracking-tight">Recent Acquisitions</h2>
+						<Button variant="ghost" size="sm" className="text-[10px] uppercase font-bold tracking-widest text-zinc-500" asChild>
+							<Link href="/vendor/dashboard/orders">View All</Link>
 						</Button>
 					</div>
 
-					<div className="space-y-4">
-						{[
-							{
-								id: "#3492",
-								customer: "Sarah Johnson",
-								amount: "$124.00",
-								status: "Completed",
-							},
-							{
-								id: "#3491",
-								customer: "Michael Chen",
-								amount: "$89.50",
-								status: "Processing",
-							},
-							{
-								id: "#3490",
-								customer: "Emma Davis",
-								amount: "$156.00",
-								status: "Shipped",
-							},
-							{
-								id: "#3489",
-								customer: "James Wilson",
-								amount: "$67.00",
-								status: "Completed",
-							},
-						].map((order) => (
-							<div
-								key={order.id}
-								className="flex items-center justify-between border-b border-border pb-4 last:border-0"
-							>
-								<div>
-									<div className="font-medium">{order.id}</div>
-									<div className="text-sm text-muted-foreground">
-										{order.customer}
-									</div>
-								</div>
-								<div className="text-right">
-									<div className="font-semibold">{order.amount}</div>
-									<div
-										className={cn(
-											"text-xs",
-											order.status === "Completed" && "text-green-600",
-											order.status === "Processing" && "text-accent",
-											order.status === "Shipped" && "text-primary"
-										)}
-									>
-										{order.status}
-									</div>
-								</div>
+					<div className="divide-y divide-zinc-50">
+						{recentOrders.length === 0 ? (
+							<div className="p-12 text-center text-zinc-400 italic">
+								No orders processed yet...
 							</div>
-						))}
+						) : (
+							recentOrders.map((order: any) => (
+								<div key={order.id} className="p-6 flex items-center justify-between hover:bg-zinc-50/50 transition-colors">
+									<div className="flex items-center gap-4">
+										<div className="h-10 w-10 rounded-lg bg-zinc-100 flex items-center justify-center">
+											<Package className="h-4 w-4 text-zinc-400" />
+										</div>
+										<div>
+											<p className="font-bold text-zinc-900 text-sm">{order.orderNumber}</p>
+											<p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+												{new Date(order.createdAt).toLocaleDateString()}
+											</p>
+										</div>
+									</div>
+									<div className="text-right">
+										<p className="font-bold text-zinc-900">${order.total?.toLocaleString()}</p>
+										<Badge variant="outline" className={cn(
+											"text-[8px] h-5 px-2 font-bold uppercase border-none",
+											order.status === "paid" ? "bg-blue-50 text-blue-600" :
+												order.status === "shipped" ? "bg-purple-50 text-purple-600" :
+													order.status === "delivered" ? "bg-emerald-50 text-emerald-600" :
+														"bg-zinc-100 text-zinc-500"
+										)}>
+											{order.status}
+										</Badge>
+									</div>
+								</div>
+							))
+						)}
 					</div>
 				</Card>
 
-				{/* Top Products */}
-				<Card className="p-6">
-					<div className="mb-6 flex items-center justify-between">
-						<h2 className="font-serif text-xl font-semibold">Top Products</h2>
-						<Button variant="ghost" size="sm" asChild>
-							<Link href="/vendor/dashboard/products">View all</Link>
+				{/* Quick Actions & Status */}
+				<div className="space-y-6">
+					<Card className="p-8 border-border bg-zinc-900 rounded-[2rem] text-white shadow-xl">
+						<h2 className="font-bold text-lg mb-6 tracking-tight">Merchant Actions</h2>
+						<div className="grid gap-3">
+							<Button className="w-full bg-white text-black hover:bg-zinc-200 rounded-xl h-12 font-bold text-xs uppercase tracking-widest" asChild>
+								<Link href="/vendor/dashboard/products/new">Add New Product</Link>
+							</Button>
+							<Button variant="outline" className="w-full border-white/20 bg-transparent text-white hover:bg-white/5 rounded-xl h-12 font-bold text-xs uppercase tracking-widest" asChild>
+								<Link href="/vendor/dashboard/orders">Ship Pending Orders</Link>
+							</Button>
+						</div>
+					</Card>
+
+					<Card className="p-8 border-border bg-card shadow-sm rounded-[2rem]">
+						<h2 className="font-bold text-zinc-900 text-lg mb-6 tracking-tight">Operational Support</h2>
+						<p className="text-sm text-zinc-500 leading-relaxed font-serif italic mb-6">
+							Need assistance with and acquisition or shipment? Our elite logistics team is available 24/7.
+						</p>
+						<Button variant="outline" className="w-full border-border rounded-xl h-12 font-bold text-xs uppercase tracking-widest text-zinc-600">
+							Contact Support
 						</Button>
-					</div>
-
-					<div className="space-y-4">
-						{[
-							{ name: "Handwoven Basket", sales: 45, revenue: "$1,350" },
-							{ name: "Ceramic Vase Set", sales: 38, revenue: "$1,710" },
-							{ name: "Wooden Cutting Board", sales: 32, revenue: "$960" },
-							{ name: "Linen Table Runner", sales: 28, revenue: "$840" },
-						].map((product, index) => (
-							<div
-								key={product.name}
-								className="flex items-center gap-4 border-b border-border pb-4 last:border-0"
-							>
-								<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted text-sm font-semibold text-muted-foreground">
-									#{index + 1}
-								</div>
-								<div className="flex-1">
-									<div className="font-medium">{product.name}</div>
-									<div className="text-sm text-muted-foreground">
-										{product.sales} sales
-									</div>
-								</div>
-								<div className="text-right font-semibold">
-									{product.revenue}
-								</div>
-							</div>
-						))}
-					</div>
-				</Card>
-			</div>
-
-			{/* Quick Actions */}
-			<Card className="mt-8 p-6">
-				<h2 className="mb-4 font-serif text-xl font-semibold">Quick Actions</h2>
-				<div className="flex flex-wrap gap-3">
-					<Button asChild>
-						<Link href="/vendor/dashboard/products/new">Add New Product</Link>
-					</Button>
-					<Button variant="outline" asChild>
-						<Link href="/vendor/dashboard/orders">Process Orders</Link>
-					</Button>
-					<Button variant="outline" asChild>
-						<Link href="/vendor/dashboard/analytics">View Analytics</Link>
-					</Button>
+					</Card>
 				</div>
-			</Card>
+			</div>
 		</div>
 	);
 }

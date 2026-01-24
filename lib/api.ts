@@ -479,6 +479,10 @@ export const vendorOrdersAPI = {
 		const res = await api.get("/api/v1/vendor/orders");
 		return res.data;
 	},
+	stats: async () => {
+		const res = await api.get("/api/v1/vendor/orders/stats");
+		return res.data;
+	},
 	get: async (id: string) => {
 		const res = await api.get(`/api/v1/vendor/orders/${id}`);
 		return res.data;
