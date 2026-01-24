@@ -4,7 +4,7 @@
 import { useEffect } from "react";
 import type { CheckedState } from "@radix-ui/react-checkbox";
 
-import { useOnboardingStore } from "@/lib/onboarding-store";
+import { useOnboardingStore } from "@/stores/onboarding-store";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/onboarding";
 import {

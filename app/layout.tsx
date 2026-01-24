@@ -7,6 +7,7 @@ import "./globals.css";
 import ClientLayout from "./client-layout";
 import { Toaster } from "@/components/ui/sonner";
 import { OnboardingProvider } from "@/lib/onboarding-context";
+import QueryProvider from "@/components/query-provider";
 
 const playfair = Playfair_Display({
 	subsets: ["latin"],
@@ -32,7 +33,9 @@ export default function RootLayout({
 				className={`font-sans ${GeistSans.variable} ${GeistMono.variable} ${playfair.variable}`}
 			>
 				<OnboardingProvider>
-					<ClientLayout>{children}</ClientLayout>
+					<QueryProvider>
+						<ClientLayout>{children}</ClientLayout>
+					</QueryProvider>
 				</OnboardingProvider>
 				<Toaster richColors position="top-right" />
 			</body>

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Clock, RotateCcw } from "lucide-react";
+import { CheckCircle2, Clock, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const VerificationEmailSent = () => {
@@ -46,68 +46,92 @@ const VerificationEmailSent = () => {
 		}
 	};
 
+
 	return (
-		<div className="max-w-lg mx-auto text-center">
-			<div className="mb-8">
-				<div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-sage-100 text-sage-700 shadow-sm">
-					<CheckCircle2 className="w-8 h-8" />
+		<div className="w-full max-w-md mx-auto">
+			<div className="flex flex-col items-center justify-center text-center space-y-10">
+				{/* Check Inbox Icon */}
+				<div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center shadow-2xl shadow-primary/20 relative z-10 animate-in zoom-in duration-500">
+					<CheckCircle2 className="w-10 h-10 text-white" />
 				</div>
-			</div>
 
-			<h1 className="font-serif text-3xl font-bold mb-2">Check your inbox</h1>
-			<p className="text-gray-700 mb-6">
-				We sent a verification link to{" "}
-				<span className="font-semibold">{email}</span>. Please click the link to
-				verify your account.
-			</p>
+				<div className="space-y-4">
+					<h1 className="text-4xl md:text-5xl font-bold tracking-tighter">
+						Check Your <span className="italic text-primary">Inbox.</span>
+					</h1>
+					<p className="text-zinc-600 font-medium leading-relaxed max-w-xs mx-auto italic">
+						&ldquo;We&apos;ve sent a verification bridge to <span className="text-primary font-bold">{email}</span>. One click to begin your journey.&rdquo;
+					</p>
+				</div>
 
-			<div className="grid grid-cols-3 gap-3 mb-6">
-				<Button variant="outline" onClick={() => handleOpenProvider("gmail")}>
-					Gmail
-				</Button>
-				<Button variant="outline" onClick={() => handleOpenProvider("outlook")}>
-					Outlook
-				</Button>
-				<Button variant="outline" onClick={() => handleOpenProvider("yahoo")}>
-					Yahoo
-				</Button>
-			</div>
+				{/* Quick provider access */}
+				<div className="grid grid-cols-3 gap-4 w-full">
+					{[
+						{ name: "Gmail", id: "gmail" as const },
+						{ name: "Outlook", id: "outlook" as const },
+						{ name: "Yahoo", id: "yahoo" as const }
+					].map((provider) => (
+						<Button
+							key={provider.id}
+							variant="outline"
+							onClick={() => handleOpenProvider(provider.id)}
+							className="h-14 rounded-2xl border-white/40 bg-zinc-50/50 backdrop-blur-xl hover:bg-white/60 transition-all font-bold text-[10px] uppercase tracking-widest"
+						>
+							{provider.name}
+						</Button>
+					))}
+				</div>
 
-			<div className="flex items-center justify-center gap-2 text-gray-700 mb-4">
-				<Clock className="w-4 h-4" />
-				<span>Didn’t get it?</span>
-			</div>
+				<div className="w-full pt-4 space-y-6">
+					<div className="flex items-center justify-center gap-3 text-zinc-400 font-bold uppercase tracking-[0.2em] text-[10px]">
+						<Clock className="w-3.5 h-3.5" />
+						<span>Still waiting?</span>
+					</div>
 
-			<Button
-				onClick={handleResend}
-				disabled={cooldown > 0 || isSending}
-				className="mb-8"
-			>
-				<RotateCcw className="w-4 h-4 mr-2" />
-				{cooldown > 0
-					? `Resend in ${cooldown}s`
-					: isSending
-					? "Resending..."
-					: "Resend email"}
-			</Button>
+					<Button
+						onClick={handleResend}
+						disabled={cooldown > 0 || isSending}
+						className="w-full py-8 bg-primary hover:bg-primary/90 text-white rounded-[2rem] font-bold text-lg shadow-2xl shadow-primary/20 transition-all border-none"
+					>
+						{isSending ? (
+							<div className="flex items-center gap-3">
+								<Loader2 className="w-5 h-5 animate-spin" />
+								Resending...
+							</div>
+						) : cooldown > 0 ? (
+							<div className="flex items-center gap-3 tracking-[0.3em] uppercase text-xs">
+								Resend in {cooldown}s
+							</div>
+						) : (
+							<div className="flex items-center gap-3 tracking-[0.3em] uppercase text-xs">
+								<RotateCcw className="w-4 h-4" />
+								Resend Link
+							</div>
+						)}
+					</Button>
 
-			<div className="text-sm text-gray-700 space-y-2">
-				<p>
-					Wrong email?{" "}
-					<button className="underline" onClick={() => router.push("/signup")}>
-						Change it
-					</button>
-				</p>
-				<p>
-					After verification, you can{" "}
-					<button className="underline" onClick={() => router.push("/login")}>
-						sign in
-					</button>
-					.
-				</p>
+					<div className="flex flex-col gap-4 text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">
+						<button
+							className="hover:text-primary transition-colors hover:underline decoration-primary/30 underline-offset-4"
+							onClick={() => router.push("/signup")}
+						>
+							Incorrect Email? Change it
+						</button>
+						<div className="h-px w-8 bg-zinc-200 mx-auto" />
+						<button
+							className="hover:text-primary transition-colors"
+							onClick={() => router.push("/login")}
+						>
+							Already Verified? Sign In
+						</button>
+					</div>
+				</div>
 			</div>
 		</div>
 	);
 };
+
+// Add Loader2 to imports if missing, but it's used in resending
+// I'll check imports
 
 export default VerificationEmailSent;

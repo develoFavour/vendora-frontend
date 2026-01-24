@@ -1,3 +1,5 @@
+"use client";
+
 import { Card } from "@/components/ui/card";
 import {
 	DollarSign,
@@ -9,15 +11,20 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useAuthStore } from "@/stores/auth-store";
+import { cn } from "@/lib/utils";
 
 export default function VendorDashboardPage() {
+	const { user } = useAuthStore();
+	const firstName = user?.name ? user.name.split(" ")[0] : "Vendor";
+
 	return (
 		<div className="p-8">
 			{/* Header */}
 			<div className="mb-8">
-				<h1 className="font-serif text-3xl font-bold">Dashboard Overview</h1>
+				<h1 className="font-serif text-3xl font-bold">Welcome back, {firstName}!</h1>
 				<p className="mt-2 text-muted-foreground">
-					Welcome back! Here&apos;s what&apos;s happening with your store today.
+					Here&apos;s what&apos;s happening with your store today.
 				</p>
 			</div>
 
@@ -223,6 +230,4 @@ export default function VendorDashboardPage() {
 	);
 }
 
-function cn(...classes: (string | boolean | undefined)[]) {
-	return classes.filter(Boolean).join(" ");
-}
+

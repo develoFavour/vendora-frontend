@@ -122,6 +122,28 @@
 		@apply border-border outline-ring/50;
 	}
 	body {
-		@apply bg-background text-foreground;
+		@apply bg-background text-foreground font-sans antialiased;
+	}
+
+	h1, h2, h3, h4, h5, h6 {
+		@apply font-serif tracking-tight font-bold;
+	}
+
+	h1 {
+		@apply tracking-tighter leading-[0.9];
+	}
+}
+
+@layer utilities {
+	.font-accent {
+		@apply font-serif italic;
+	}
+
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+	.no-scrollbar {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
 	}
 }

@@ -6,9 +6,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
+import { api, setAuthTokens } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/stores/auth-store";
 
 export default function LoginPage() {
 	const [showPassword, setShowPassword] = useState(false);
@@ -20,6 +21,7 @@ export default function LoginPage() {
 	});
 
 	const router = useRouter();
+	const { setAuth } = useAuthStore();
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -29,12 +31,27 @@ export default function LoginPage() {
 		try {
 			const { data } = await api.post("/api/v1/auth/login", formData);
 			// Support both possible payload shapes
-			const token: string | undefined = data?.accessToken ?? data?.data?.accessToken;
-			if (token) {
-				localStorage.setItem("accessToken", token);
+			const token: string | undefined =
+				data?.accessToken ?? data?.data?.accessToken;
+			const refreshToken: string | undefined =
+				data?.refreshToken ?? data?.data?.refreshToken;
+			const user = data?.user ?? data?.data?.user;
+
+			if (token && user) {
+				setAuth(user, token, refreshToken);
+				setAuthTokens(token, refreshToken);
 			}
+
 			toast.success("Signed in successfully");
-			router.push("/dashboard");
+
+			// Redirect based on role
+			if (user?.role === "admin") {
+				router.push("/admin/dashboard");
+			} else if (user?.role === "vendor" || user?.role === "seller") {
+				router.push("/vendor/dashboard");
+			} else {
+				router.push("/buyer/dashboard");
+			}
 		} catch (err: unknown) {
 			const message = err instanceof Error ? err.message : "Login failed";
 			setError(message);
@@ -47,58 +64,58 @@ export default function LoginPage() {
 	return (
 		<div className="w-full max-w-md mx-auto">
 			{/* Header */}
-			<div className="text-center mb-8">
-				<h2 className="font-serif text-4xl font-bold text-gray-900 mb-2">
-					Welcome Back
+			<div className="text-center mb-10">
+				<h2 className="text-4xl font-bold tracking-tight mb-3">
+					Welcome <span className="italic text-primary">Back.</span>
 				</h2>
-				<p className="text-gray-700">Sign in to your Vendora account</p>
+				<p className="text-zinc-600 font-medium">Continue your artisan journey.</p>
 			</div>
 
 			{/* Error message */}
 			{error && (
-				<div className="mb-6 p-4 backdrop-blur-md bg-red-50/80 border border-red-200/50 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300 shadow-lg">
-					<p className="text-sm text-red-900 font-medium">{error}</p>
+				<div className="mb-6 p-4 backdrop-blur-xl bg-red-50/50 border border-red-100 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300">
+					<p className="text-xs text-red-600 font-bold uppercase tracking-widest">{error}</p>
 				</div>
 			)}
 
-			<form onSubmit={handleSubmit} className="space-y-6">
+			<form onSubmit={handleSubmit} className="space-y-8">
 				{/* Form fields with glassmorphic styling */}
-				<div className="space-y-4">
+				<div className="space-y-5">
 					<div className="relative group">
-						<Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 z-10 transition-colors group-focus-within:text-sage-600" />
+						<Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 z-10 transition-colors group-focus-within:text-primary" />
 						<input
 							type="email"
 							value={formData.email}
 							onChange={(e) =>
 								setFormData({ ...formData, email: e.target.value })
 							}
-							className="w-full pl-11 pr-4 py-3 backdrop-blur-md bg-white/40 border border-white/60 rounded-xl focus:ring-2 focus:ring-sage-500/50 focus:border-sage-500/50 focus:bg-white/50 transition-all text-gray-900 placeholder:text-gray-600"
+							className="w-full pl-12 pr-4 py-4 backdrop-blur-xl bg-white/20 border border-white/40 rounded-2xl focus:ring-4 focus:ring-primary/5 focus:border-primary/40 focus:bg-white/40 transition-all text-zinc-900 placeholder:text-zinc-400 font-medium"
 							placeholder="Email Address"
 							required
 						/>
 					</div>
 
 					<div className="relative group">
-						<Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 z-10 transition-colors group-focus-within:text-sage-600" />
+						<Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 z-10 transition-colors group-focus-within:text-primary" />
 						<input
 							type={showPassword ? "text" : "password"}
 							value={formData.password}
 							onChange={(e) =>
 								setFormData({ ...formData, password: e.target.value })
 							}
-							className="w-full pl-11 pr-12 py-3 backdrop-blur-md bg-white/40 border border-white/60 rounded-xl focus:ring-2 focus:ring-sage-500/50 focus:border-sage-500/50 focus:bg-white/50 transition-all text-gray-900 placeholder:text-gray-600"
+							className="w-full pl-12 pr-12 py-4 backdrop-blur-xl bg-white/20 border border-white/40 rounded-2xl focus:ring-4 focus:ring-primary/5 focus:border-primary/40 focus:bg-white/40 transition-all text-zinc-900 placeholder:text-zinc-400 font-medium"
 							placeholder="Password"
 							required
 						/>
 						<button
 							type="button"
 							onClick={() => setShowPassword(!showPassword)}
-							className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900 transition-colors z-10"
+							className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-primary transition-colors z-10"
 						>
 							{showPassword ? (
-								<EyeOff className="w-5 h-5" />
+								<EyeOff className="w-4 h-4" />
 							) : (
-								<Eye className="w-5 h-5" />
+								<Eye className="w-4 h-4" />
 							)}
 						</button>
 					</div>
@@ -108,7 +125,7 @@ export default function LoginPage() {
 				<div className="flex justify-end">
 					<Link
 						href="/forgot-password"
-						className="text-sm font-medium text-sage-700 hover:text-sage-800 transition-colors"
+						className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500 hover:text-primary transition-colors"
 					>
 						Forgot password?
 					</Link>
@@ -118,29 +135,29 @@ export default function LoginPage() {
 				<Button
 					type="submit"
 					disabled={loading}
-					className="w-full py-6 bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
+					className="w-full py-8 bg-primary hover:bg-primary/90 text-white rounded-[2rem] font-bold text-lg shadow-2xl shadow-primary/20 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] border-none"
 				>
 					{loading ? (
-						<div className="flex items-center justify-center gap-2">
+						<div className="flex items-center justify-center gap-3">
 							<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-							Signing In...
+							Authenticating...
 						</div>
 					) : (
-						<div className="flex items-center justify-center gap-2">
-							<LogIn className="w-5 h-5" />
-							Sign In
+						<div className="flex items-center justify-center gap-3 tracking-[0.3em] uppercase text-xs">
+							<LogIn className="w-4 h-4" />
+							Enter Boutique
 						</div>
 					)}
 				</Button>
 
 				{/* Sign up link */}
-				<p className="text-center text-sm text-gray-800">
-					Don&apos;t have an account?{" "}
+				<p className="text-center text-xs text-zinc-500 font-bold uppercase tracking-[0.2em]">
+					New to Vendora?{" "}
 					<Link
 						href="/signup"
-						className="font-semibold text-sage-700 hover:text-sage-800 transition-colors"
+						className="text-primary hover:text-primary/80 transition-colors ml-2"
 					>
-						Create one
+						Create Account
 					</Link>
 				</p>
 			</form>

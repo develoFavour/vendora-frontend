@@ -11,7 +11,7 @@ import React, {
 import { onboardingDraftAPI } from "@/lib/api";
 
 // Types for our onboarding system
-export type UserRole = "customer" | "vendor";
+export type UserRole = "buyer" | "vendor";
 
 export interface OnboardingStep {
 	id: string;
@@ -78,6 +78,7 @@ function onboardingReducer(
 			return {
 				...state,
 				currentStep: nextStep,
+				errors: {}, // Clear errors when moving to the next step
 			};
 
 		case "PREV_STEP":
@@ -198,7 +199,7 @@ export function OnboardingProvider({
 		try {
 			const params = new URLSearchParams(window.location.search);
 			const role = params.get("role");
-			if (role === "customer" || role === "vendor") {
+			if (role === "buyer" || role === "vendor") {
 				dispatch({ type: "SET_ROLE", payload: role });
 			}
 		} catch {}
@@ -283,11 +284,16 @@ export function OnboardingProvider({
 
 	// Sync URL when currentStep changes
 	useEffect(() => {
+		// Only sync URL step index if we are on an onboarding-related page
+		if (!window.location.pathname.includes("/onboarding")) return;
+
 		try {
 			const url = new URL(window.location.href);
 			url.searchParams.set("stepIndex", String(state.currentStep));
 			window.history.replaceState({}, "", url.toString());
-		} catch {}
+		} catch (error) {
+			console.error("Error updating URL:", error);
+		}
 	}, [state.currentStep]);
 
 	const nextStep = () => dispatch({ type: "NEXT_STEP" });

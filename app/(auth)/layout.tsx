@@ -25,9 +25,9 @@ export default function AuthLayout({
 					alt="Artisan marketplace"
 					className="absolute inset-0 w-full h-full object-cover"
 				/>
-				<div className="absolute inset-0 bg-gradient-to-br from-sage-900/95 via-sage-800/90 to-terracotta-900/85" />
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent_50%)]" />
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(217,119,85,0.15),transparent_50%)]" />
+				<div className="absolute inset-0 bg-gradient-to-br from-zinc-950/95 via-primary/40 to-accent/20" />
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.05),transparent_50%)]" />
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(var(--accent),0.1),transparent_50%)]" />
 			</div>
 
 			{/* Floating stats badges */}
@@ -51,15 +51,14 @@ export default function AuthLayout({
 				<div className="backdrop-blur-xl bg-white/20 dark:bg-gray-900/20 rounded-3xl shadow-2xl border border-white/30 overflow-hidden animate-in fade-in zoom-in duration-500">
 					<div className="grid lg:grid-cols-2">
 						{/* Left side - Branding */}
-						<div className="hidden lg:flex flex-col justify-center p-12 bg-gradient-to-br from-sage-600/90 to-sage-800/90 backdrop-blur-sm text-white relative overflow-hidden">
-							<div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.1),transparent_50%)]" />
+						<div className="hidden lg:flex flex-col justify-center p-12 bg-gradient-to-br from-zinc-900 to-zinc-950 text-white relative overflow-hidden">
+							<div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.05),transparent_50%)]" />
 							<div className="relative z-10">
-								<h1 className="font-serif text-5xl font-bold mb-4 text-balance">
-									Vendora
+								<h1 className="text-6xl font-bold mb-6 text-primary tracking-tighter italic">
+									Vendora.
 								</h1>
-								<p className="text-xl text-cream-100 mb-8 leading-relaxed">
-									Join a marketplace that empowers independent sellers and
-									connects conscious consumers with quality products.
+								<p className="text-xl text-zinc-400 mb-12 leading-relaxed">
+									Join a curated marketplace that empowers independent artisans and connects conscious collectors with excellence.
 								</p>
 								<div className="space-y-4">
 									<div className="flex items-center gap-3 group">

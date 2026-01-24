@@ -101,45 +101,41 @@ export default function VendorsPage() {
 			<Navigation />
 
 			{/* Header */}
-			<section className="border-b border-border bg-gradient-to-br from-sage/10 to-background">
-				<div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+			<section className="relative overflow-hidden bg-zinc-950 py-24 px-4 text-white rounded-b-[4rem]">
+				<div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+				<div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-primary/20 blur-[130px]" />
+				<div className="absolute -left-20 -bottom-20 h-96 w-96 rounded-full bg-accent/20 blur-[130px]" />
+
+				<div className="mx-auto max-w-7xl relative z-10">
 					<div className="text-center">
-						<Badge className="mb-6 bg-sage/10 text-sage border-sage/20">
-							Meet Our Community
+						<Badge className="mb-8 bg-white/10 text-white hover:bg-white/20 backdrop-blur-2xl border-white/10 py-1.5 px-6 text-[10px] font-bold uppercase tracking-[0.3em]">
+							Meet the Artisans
 						</Badge>
-						<h1 className="font-serif text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl text-balance">
-							Discover Independent Sellers
+						<h1 className="text-5xl md:text-8xl tracking-tighter mb-8">
+							Discover <span className="italic text-primary">Mastery.</span>
 						</h1>
-						<p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground leading-relaxed">
-							Browse our curated collection of verified vendors. Each brings
-							their unique craftsmanship and passion to the marketplace.
+						<p className="mx-auto mt-6 max-w-2xl text-xl text-zinc-400 font-medium leading-relaxed italic">
+							&ldquo;Curating the world&apos;s most skilled makers, so you can discover pieces that resonate with your soul.&rdquo;
 						</p>
 					</div>
 
 					{/* Stats */}
-					<div className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4">
-						<div className="text-center">
-							<div className="text-3xl font-bold text-primary">2,500+</div>
-							<div className="mt-1 text-sm text-muted-foreground">
-								Active Vendors
+					<div className="mt-20 grid grid-cols-2 gap-8 sm:grid-cols-4 border-t border-white/10 pt-16">
+						{[
+							{ label: "Active Artisans", value: "2,500+" },
+							{ label: "Boutique Items", value: "50,000+" },
+							{ label: "Average Rating", value: "4.9/5" },
+							{ label: "Global Presence", value: "25+ Countries" }
+						].map((stat) => (
+							<div key={stat.label} className="text-center group">
+								<div className="text-4xl md:text-5xl font-bold tracking-tighter mb-2 group-hover:text-primary transition-colors">
+									{stat.value}
+								</div>
+								<div className="text-[10px] uppercase tracking-[0.3em] font-bold text-zinc-500">
+									{stat.label}
+								</div>
 							</div>
-						</div>
-						<div className="text-center">
-							<div className="text-3xl font-bold text-primary">50K+</div>
-							<div className="mt-1 text-sm text-muted-foreground">Products</div>
-						</div>
-						<div className="text-center">
-							<div className="text-3xl font-bold text-primary">4.8/5</div>
-							<div className="mt-1 text-sm text-muted-foreground">
-								Avg Rating
-							</div>
-						</div>
-						<div className="text-center">
-							<div className="text-3xl font-bold text-primary">98%</div>
-							<div className="mt-1 text-sm text-muted-foreground">
-								Satisfaction
-							</div>
-						</div>
+						))}
 					</div>
 				</div>
 			</section>
@@ -149,12 +145,12 @@ export default function VendorsPage() {
 				<div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
 					<div className="flex flex-col gap-4 sm:flex-row sm:items-center">
 						{/* Search */}
-						<div className="relative flex-1 max-w-md">
-							<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+						<div className="relative flex-1 max-w-md group">
+							<Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
 							<Input
 								type="search"
-								placeholder="Search vendors..."
-								className="pl-10"
+								placeholder="Search boutique names..."
+								className="h-14 pl-12 rounded-2xl border-border/40 bg-zinc-50/50 backdrop-blur-xl focus:ring-primary/10 transition-all font-medium"
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
 							/>
@@ -259,17 +255,17 @@ export default function VendorsPage() {
 			</section>
 
 			{/* CTA Section */}
-			<section className="border-t border-border bg-muted/30 py-16">
+			<section className="border-t border-border/40 bg-zinc-50/30 py-24">
 				<div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-					<h2 className="font-serif text-3xl font-bold tracking-tight sm:text-4xl">
-						Want to join our community?
+					<h2 className="text-4xl md:text-6xl mb-8 tracking-tighter">
+						Ready to <span className="italic text-primary">showcase</span> <br />
+						your work?
 					</h2>
-					<p className="mt-4 text-lg text-muted-foreground">
-						Start selling your products and reach thousands of conscious
-						consumers.
+					<p className="mt-6 text-xl text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed">
+						Join our elite circle of artisans and reach collectors who truly appreciate the art of the handmade.
 					</p>
-					<Button size="lg" className="mt-8" asChild>
-						<Link href="/auth/signup">Become a Vendor</Link>
+					<Button size="lg" className="mt-12 h-16 px-12 rounded-full font-bold text-lg shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all" asChild>
+						<Link href="/auth/signup">Become an Artisan Partner</Link>
 					</Button>
 				</div>
 			</section>

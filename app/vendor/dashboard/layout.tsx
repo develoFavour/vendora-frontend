@@ -7,9 +7,9 @@ export default function VendorDashboardLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<div className="flex min-h-screen">
+		<div className="flex h-screen overflow-hidden">
 			<VendorSidebar />
-			<main className="flex-1 bg-muted/30">{children}</main>
+			<main className="flex-1 overflow-y-auto bg-muted/30">{children}</main>
 		</div>
 	);
 }

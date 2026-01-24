@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ArrowRight, CheckCircle2, Circle } from "lucide-react";
-import { useOnboardingStore } from "@/lib/onboarding-store";
+import { useOnboardingStore } from "@/stores/onboarding-store";
 
 // Progress Indicator Component
 interface ProgressIndicatorProps {
@@ -124,7 +124,8 @@ export function OnboardingLayout({
 	onBack,
 	isLoading = false,
 }: OnboardingLayoutProps) {
-	const { currentStep, prevStep, nextStep, canProceedToNext, errors } = useOnboardingStore();
+	const { currentStep, prevStep, nextStep, canProceedToNext, errors } =
+		useOnboardingStore();
 
 	const handleNext = () => {
 		if (onNext) {
@@ -173,12 +174,22 @@ export function OnboardingLayout({
 						<div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg shadow-sm">
 							<div className="flex items-start gap-3">
 								<div className="flex-shrink-0 mt-0.5">
-									<svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-										<path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+									<svg
+										className="w-5 h-5 text-red-500"
+										fill="currentColor"
+										viewBox="0 0 20 20"
+									>
+										<path
+											fillRule="evenodd"
+											d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+											clipRule="evenodd"
+										/>
 									</svg>
 								</div>
 								<div className="flex-1">
-									<h3 className="text-sm font-semibold text-red-800 mb-1">Error</h3>
+									<h3 className="text-sm font-semibold text-red-800 mb-1">
+										Error
+									</h3>
 									{Object.entries(errors).map(([stepId, error]) => (
 										<p key={stepId} className="text-sm text-red-700">
 											{error}
@@ -208,7 +219,7 @@ export function OnboardingLayout({
 									Back
 								</Button>
 							) : (
-								<div className="w-1/2" /> 
+								<div className="w-1/2" />
 							)}
 
 							{showNextButton && (

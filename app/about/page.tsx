@@ -68,19 +68,21 @@ export default function AboutPage() {
 	return (
 		<div className="min-h-screen">
 			{/* Hero Section */}
-			<section className="relative bg-gradient-to-br from-sage/10 via-background to-terracotta/5 py-20 px-4">
-				<div className="max-w-4xl mx-auto text-center">
-					<Badge className="mb-4 bg-sage/10 text-sage border-sage/20">
-						Our Story
+			<section className="relative overflow-hidden bg-zinc-950 py-32 px-4 text-white rounded-b-[4rem]">
+				<div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+				<div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-primary/20 blur-[130px]" />
+				<div className="absolute -left-20 -bottom-20 h-96 w-96 rounded-full bg-accent/20 blur-[130px]" />
+
+				<div className="relative z-10 max-w-5xl mx-auto text-center">
+					<Badge className="mb-8 bg-white/10 text-white hover:bg-white/20 backdrop-blur-2xl border-white/10 py-1.5 px-6 text-[10px] font-bold uppercase tracking-[0.3em]">
+						The Vendora Legacy
 					</Badge>
-					<h1 className="font-serif text-4xl md:text-6xl font-bold text-balance mb-6">
-						Empowering Independent Sellers, One Transaction at a Time
+					<h1 className="text-5xl md:text-8xl lg:text-9xl mb-8 tracking-tighter">
+						Curating <span className="italic text-primary">Excellence,</span> <br />
+						Empowering Makers.
 					</h1>
-					<p className="text-lg md:text-xl text-muted-foreground text-balance leading-relaxed max-w-3xl mx-auto">
-						Vendora was born from a simple belief: small businesses deserve a
-						platform that puts them first. We&apos;re building a marketplace
-						where quality, transparency, and community matter more than
-						algorithms.
+					<p className="text-xl md:text-2xl text-zinc-400 font-medium leading-relaxed max-w-3xl mx-auto italic">
+						&ldquo;Vendora was born from a simple belief: that true craftsmanship deserves a stage as exceptional as the work itself.&rdquo;
 					</p>
 				</div>
 			</section>
@@ -90,14 +92,14 @@ export default function AboutPage() {
 				<div className="max-w-7xl mx-auto">
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-8">
 						{stats.map((stat) => (
-							<div key={stat.label} className="text-center">
-								<div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-sage/10 mb-4">
-									<stat.icon className="h-6 w-6 text-sage" />
+							<div key={stat.label} className="text-center group">
+								<div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-primary/5 mb-6 group-hover:scale-110 transition-transform duration-500">
+									<stat.icon className="h-7 w-7 text-primary" />
 								</div>
-								<div className="font-serif text-3xl md:text-4xl font-bold mb-2">
+								<div className="text-4xl md:text-5xl mb-2 tracking-tighter">
 									{stat.value}
 								</div>
-								<div className="text-sm text-muted-foreground">
+								<div className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">
 									{stat.label}
 								</div>
 							</div>
@@ -111,27 +113,21 @@ export default function AboutPage() {
 				<div className="max-w-7xl mx-auto">
 					<div className="grid md:grid-cols-2 gap-12 items-center">
 						<div>
-							<Badge className="mb-4 bg-terracotta/10 text-terracotta border-terracotta/20">
-								Our Mission
+							<Badge className="mb-6 bg-accent/10 text-accent border-accent/20 font-bold tracking-widest uppercase text-[10px]">
+								Our Philosophy
 							</Badge>
-							<h2 className="font-serif text-3xl md:text-4xl font-bold mb-6">
-								Building a Better Marketplace for Everyone
+							<h2 className="text-4xl md:text-6xl mb-8">
+								Crafting a <span className="italic text-primary">Better</span> <br />
+								Standard for All.
 							</h2>
-							<p className="text-muted-foreground leading-relaxed mb-6">
-								We started Vendora because we saw talented artisans, makers, and
-								small business owners struggling to compete with massive
-								corporations on traditional platforms. High fees, buried
-								listings, and impersonal experiences were holding them back.
+							<p className="text-lg text-muted-foreground leading-[1.8] mb-8 font-medium">
+								We saw a world where talented artisans were buried under corporate algorithms. Vendora was built to reverse that—creating a space where quality is the only currency that matters.
 							</p>
-							<p className="text-muted-foreground leading-relaxed mb-6">
-								Our mission is to create a marketplace that celebrates
-								independent sellers, provides transparent pricing, and builds
-								genuine connections between makers and buyers. Every feature we
-								build, every decision we make, starts with asking: &apos;Does
-								this help our vendors succeed?&apos;
+							<p className="text-lg text-muted-foreground leading-[1.8] mb-10 font-medium italic">
+								Every decision we make starts with a simple question: &ldquo;Does this honor the maker?&rdquo;
 							</p>
-							<Button asChild size="lg">
-								<Link href="/auth/signup">Start Selling Today</Link>
+							<Button asChild size="lg" className="h-16 px-10 rounded-full font-bold text-lg shadow-2xl shadow-primary/20">
+								<Link href="/auth/signup">Join the Movement</Link>
 							</Button>
 						</div>
 						<div className="relative">
@@ -159,16 +155,15 @@ export default function AboutPage() {
 			{/* Values Section */}
 			<section className="py-20 px-4 bg-gradient-to-br from-cream/30 to-background">
 				<div className="max-w-7xl mx-auto">
-					<div className="text-center mb-16">
-						<Badge className="mb-4 bg-sage/10 text-sage border-sage/20">
-							Our Values
+					<div className="text-center mb-20">
+						<Badge className="mb-6 bg-primary/10 text-primary border-primary/20 font-bold tracking-widest uppercase text-[10px]">
+							The Vendora Way
 						</Badge>
-						<h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">
-							What We Stand For
+						<h2 className="text-4xl md:text-6xl mb-6">
+							What We <span className="italic">Uphold</span>
 						</h2>
-						<p className="text-muted-foreground max-w-2xl mx-auto">
-							These principles guide every decision we make and every feature we
-							build.
+						<p className="text-xl text-muted-foreground max-w-2xl mx-auto font-medium">
+							These principles are woven into every line of code we write.
 						</p>
 					</div>
 
@@ -195,16 +190,15 @@ export default function AboutPage() {
 			{/* Team Section */}
 			<section className="py-20 px-4">
 				<div className="max-w-7xl mx-auto">
-					<div className="text-center mb-16">
-						<Badge className="mb-4 bg-terracotta/10 text-terracotta border-terracotta/20">
-							Our Team
+					<div className="text-center mb-20">
+						<Badge className="mb-6 bg-accent/10 text-accent border-accent/20 font-bold tracking-widest uppercase text-[10px]">
+							The Visionaries
 						</Badge>
-						<h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">
-							Meet the People Behind Vendora
+						<h2 className="text-4xl md:text-6xl mb-6">
+							Meet the <span className="italic text-primary">Founders</span>
 						</h2>
-						<p className="text-muted-foreground max-w-2xl mx-auto">
-							We&apos;re a small team with big dreams, united by our passion for
-							supporting independent businesses.
+						<p className="text-xl text-muted-foreground max-w-2xl mx-auto font-medium">
+							Artisans of the digital world, dedicated to your success.
 						</p>
 					</div>
 
@@ -240,23 +234,23 @@ export default function AboutPage() {
 
 			{/* CTA Section */}
 			<section className="py-20 px-4 bg-gradient-to-br from-sage/10 to-terracotta/5">
-				<div className="max-w-4xl mx-auto text-center">
-					<h2 className="font-serif text-3xl md:text-4xl font-bold mb-6">
-						Ready to Join Our Community?
+				<div className="relative z-10 max-w-5xl mx-auto text-center">
+					<h2 className="text-5xl md:text-7xl lg:text-8xl mb-10 tracking-tighter">
+						Ready to <span className="italic text-primary">begin?</span>
 					</h2>
-					<p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-						Whether you&apos;re a maker looking to sell or a shopper seeking
-						unique products, Vendora is the place for you.
+					<p className="text-xl text-zinc-400 mb-12 max-w-2xl mx-auto font-medium">
+						Step into a world where quality reigns supreme. Start your journey with Vendora today.
 					</p>
-					<div className="flex flex-col sm:flex-row gap-4 justify-center">
-						<Button asChild size="lg">
-							<Link href="/auth/signup">Start Selling</Link>
+					<div className="flex flex-wrap gap-6 justify-center">
+						<Button asChild size="lg" className="h-16 px-12 rounded-full font-bold text-lg shadow-2xl shadow-primary/20">
+							<Link href="/auth/signup">Join as Artisan</Link>
 						</Button>
-						<Button asChild variant="outline" size="lg">
-							<Link href="/marketplace">Browse Products</Link>
+						<Button asChild variant="outline" size="lg" className="h-16 px-12 rounded-full font-bold text-lg border-white/20 hover:bg-white hover:text-black">
+							<Link href="/marketplace">Explore Gallery</Link>
 						</Button>
 					</div>
 				</div>
+				<div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
 			</section>
 		</div>
 	);

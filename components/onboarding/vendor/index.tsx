@@ -1,6 +1,6 @@
 // Vendor Onboarding Steps
 import React from "react";
-import { useOnboarding } from "@/lib/onboarding-context";
+import { useOnboardingStore } from "@/stores/onboarding-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CategorySelector, FormField } from "@/components/onboarding";
+import { sellerOnboardingAPI } from "@/lib/api";
+import { toast } from "sonner";
 
 const CATEGORIES = [
 	{
@@ -100,7 +102,7 @@ const BUSINESS_SIZES = [
 
 // Vendor Welcome Step
 export function VendorWelcome() {
-	const { setStepData } = useOnboarding();
+	const { setStepData } = useOnboardingStore();
 
 	const handleSubmit = () => {
 		setStepData("welcome", { completed: true });
@@ -166,15 +168,48 @@ export function VendorWelcome() {
 
 // Vendor Business Type Step
 export function VendorBusinessType() {
-	const { state, setStepData, clearError } = useOnboarding();
+	const { stepData, setStepData, clearError, setError, setLoading, nextStep } =
+		useOnboardingStore();
 
 	const businessData =
-		(state.stepData["business-type"] as Record<string, string>) || {};
+		(stepData["business-type"] as Record<string, string>) || {};
 
 	const handleBusinessTypeChange = (key: string, value: string) => {
 		const newData = { ...businessData, [key]: value };
 		setStepData("business-type", newData);
 		clearError("business-type");
+	};
+
+	const handleSubmit = async () => {
+		if (
+			!businessData.businessType ||
+			!businessData.businessSize ||
+			!businessData.experience
+		) {
+			setError("business-type", "Please fill in all required fields");
+			return;
+		}
+
+		setLoading(true);
+		try {
+			await sellerOnboardingAPI.updateBusinessType({
+				type: businessData.businessType,
+				size: businessData.businessSize,
+				experience: businessData.experience,
+			});
+
+			toast.success("Business information saved");
+			nextStep(); // Move to next step after successful save
+		} catch (error) {
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: "Failed to save business information";
+			setError("business-type", errorMessage);
+			toast.error(errorMessage);
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	const canProceed =
@@ -271,46 +306,126 @@ export function VendorBusinessType() {
 					</Select>
 				</FormField>
 			</div>
+
+			<FormField>
+				<Button
+					onClick={handleSubmit}
+					disabled={!canProceed}
+					className="w-full bg-terracotta-600 hover:bg-terracotta-700"
+				>
+					Continue
+				</Button>
+			</FormField>
 		</div>
 	);
 }
 
 // Vendor Categories Step
 export function VendorCategories() {
-	const { state, setStepData } = useOnboarding();
+	const { stepData, setStepData, clearError, setError, setLoading, nextStep } =
+		useOnboardingStore();
 
 	const categoriesData =
-		(state.stepData.categories as { categories?: string[] }) || {};
+		(stepData.categories as { categories?: string[] }) || {};
 	const selectedCategories = categoriesData.categories || [];
 
-	const handleCategoryChange = (categories: string[]) => {
+	const handleCategoryChange = async (categories: string[]) => {
+		if (categories.length === 0) {
+			setError("categories", "Please select at least one category");
+			return;
+		}
+
+		// Clear error when valid selection is made
+		clearError("categories");
+
+		// Save the selection to step data but don't proceed yet
 		setStepData("categories", { categories });
 	};
 
+	const handleCategoriesSubmit = async () => {
+		if (selectedCategories.length === 0) {
+			setError("categories", "Please select at least one category");
+			return;
+		}
+
+		setLoading(true);
+		try {
+			await sellerOnboardingAPI.updateCategories(selectedCategories);
+			toast.success("Categories saved");
+			nextStep(); // Move to next step after successful save
+		} catch (error) {
+			const errorMessage =
+				error instanceof Error ? error.message : "Failed to save categories";
+			setError("categories", errorMessage);
+			toast.error(errorMessage);
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	return (
-		<CategorySelector
-			categories={CATEGORIES}
-			selectedCategories={selectedCategories}
-			onSelectionChange={handleCategoryChange}
-			title="What do you sell?"
-			description="Select the categories that best describe your products. You can always add more later."
-			minSelections={1}
-			maxSelections={5}
-		/>
+		<div className="space-y-6">
+			<CategorySelector
+				categories={CATEGORIES}
+				selectedCategories={selectedCategories}
+				onSelectionChange={handleCategoryChange}
+				title="What do you sell?"
+				description="Select categories that best describe your products. You can always add more later."
+				minSelections={1}
+				maxSelections={5}
+				showNextButton={true}
+				nextButtonText="Continue"
+				onNext={handleCategoriesSubmit}
+			/>
+		</div>
 	);
 }
 
 // Vendor Business Details Step
 export function VendorBusinessDetails() {
-	const { state, setStepData, clearError } = useOnboarding();
+	const { stepData, setStepData, clearError, setError, setLoading, nextStep } =
+		useOnboardingStore();
 
 	const businessDetails =
-		(state.stepData["business-details"] as Record<string, string>) || {};
+		(stepData["business-details"] as Record<string, string>) || {};
 
 	const handleBusinessDetailChange = (key: string, value: string) => {
 		const newDetails = { ...businessDetails, [key]: value };
 		setStepData("business-details", newDetails);
 		clearError("business-details");
+	};
+
+	const handleSubmit = async () => {
+		if (
+			!businessDetails.businessName ||
+			!businessDetails.description ||
+			!businessDetails.location
+		) {
+			setError("business-details", "Please fill in all required fields");
+			return;
+		}
+
+		setLoading(true);
+		try {
+			await sellerOnboardingAPI.updateBusinessDetails({
+				businessName: businessDetails.businessName,
+				description: businessDetails.description,
+				location: businessDetails.location,
+				url: businessDetails.website,
+			});
+
+			toast.success("Business details saved");
+			nextStep(); // Move to next step after successful save
+		} catch (error) {
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: "Failed to save business details";
+			setError("business-details", errorMessage);
+			toast.error(errorMessage);
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	const canProceed =
@@ -371,21 +486,84 @@ export function VendorBusinessDetails() {
 					/>
 				</FormField>
 			</div>
+
+			<FormField>
+				<Button
+					onClick={handleSubmit}
+					disabled={!canProceed}
+					className="w-full bg-terracotta-600 hover:bg-terracotta-700"
+				>
+					Continue
+				</Button>
+			</FormField>
 		</div>
 	);
 }
 
 // Vendor Store Setup Step
 export function VendorStoreSetup() {
-	const { state, setStepData, clearError } = useOnboarding();
+	const { stepData, setStepData, clearError, setError, setLoading, nextStep } =
+		useOnboardingStore();
 
-	const storeSetup =
-		(state.stepData["store-setup"] as Record<string, string>) || {};
+	const storeSetup = (stepData["store-setup"] as Record<string, string>) || {};
+	const [storeLogoFile, setStoreLogoFile] = React.useState<File | null>(null);
 
 	const handleStoreSetupChange = (key: string, value: string) => {
 		const newSetup = { ...storeSetup, [key]: value };
 		setStepData("store-setup", newSetup);
 		clearError("store-setup");
+	};
+
+	const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (file) {
+			// Validate file type and size
+			const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+			if (!allowedTypes.includes(file.type)) {
+				setError(
+					"store-setup",
+					"Please upload a valid image file (JPG, PNG, or WebP)"
+				);
+				return;
+			}
+			if (file.size > 5 * 1024 * 1024) {
+				// 5MB limit
+				setError("store-setup", "File size must be less than 5MB");
+				return;
+			}
+
+			setStoreLogoFile(file);
+			handleStoreSetupChange("storeLogo", file.name);
+			clearError("store-setup");
+		}
+	};
+
+	const handleSubmit = async () => {
+		if (!storeSetup.storeName || !storeSetup.storeDescription) {
+			setError("store-setup", "Please fill in all required fields");
+			return;
+		}
+
+		setLoading(true);
+		try {
+			await sellerOnboardingAPI.updateStoreDetails({
+				storeName: storeSetup.storeName,
+				storeDescription: storeSetup.storeDescription,
+				primaryColor: storeSetup.primaryColor,
+				accentColor: storeSetup.accentColor,
+				storeLogo: storeLogoFile || undefined, // Use the actual File object
+			});
+
+			toast.success("Store details saved");
+			nextStep(); // Move to next step after successful save
+		} catch (error) {
+			const errorMessage =
+				error instanceof Error ? error.message : "Failed to save store details";
+			setError("store-setup", errorMessage);
+			toast.error(errorMessage);
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	const canProceed = storeSetup.storeName && storeSetup.storeDescription;
@@ -426,14 +604,33 @@ export function VendorStoreSetup() {
 				<FormField label="Store Logo (optional)">
 					<div className="flex items-center gap-4">
 						<div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center border-2 border-dashed border-muted-foreground/25">
-							<span className="text-2xl">🏪</span>
+							{storeLogoFile ? (
+								<span className="text-2xl">✓</span>
+							) : (
+								<span className="text-2xl">🏪</span>
+							)}
 						</div>
 						<div>
-							<Button variant="outline" className="mb-2">
-								Upload Logo
+							<input
+								type="file"
+								accept="image/*"
+								onChange={handleFileUpload}
+								className="hidden"
+								id="store-logo-upload"
+							/>
+							<Button
+								variant="outline"
+								className="mb-2"
+								onClick={() =>
+									document.getElementById("store-logo-upload")?.click()
+								}
+							>
+								{storeLogoFile ? "Change Logo" : "Upload Logo"}
 							</Button>
 							<p className="text-xs text-muted-foreground">
-								Square image, at least 400x400px
+								{storeLogoFile
+									? storeLogoFile.name
+									: "Square image, at least 400x400px"}
 							</p>
 						</div>
 					</div>
@@ -484,18 +681,124 @@ export function VendorStoreSetup() {
 					</div>
 				</FormField>
 			</div>
+
+			<FormField>
+				<Button
+					onClick={handleSubmit}
+					disabled={!canProceed}
+					className="w-full bg-terracotta-600 hover:bg-terracotta-700"
+				>
+					Continue
+				</Button>
+			</FormField>
 		</div>
 	);
 }
 
 // Vendor Verification Step
 export function VendorVerification() {
-	const { setStepData, nextStep } = useOnboarding();
+	const {
+		setStepData,
+		setError,
+		clearError,
+		setLoading,
+		nextStep,
+		errors,
+		isLoading,
+	} = useOnboardingStore();
+	const [idDocument, setIdDocument] = React.useState<File | null>(null);
+	const [termsAccepted, setTermsAccepted] = React.useState(false);
 
-	const handleVerificationSubmit = () => {
-		setStepData("verification", { completed: true });
-		nextStep();
+	const handleIdUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (file) {
+			const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+			if (!allowedTypes.includes(file.type)) {
+				setError(
+					"verification",
+					"Please upload a valid document (JPG, PNG, or PDF)"
+				);
+				return;
+			}
+			if (file.size > 5 * 1024 * 1024) {
+				setError("verification", "File size must be less than 5MB");
+				return;
+			}
+			setIdDocument(file);
+			clearError("verification");
+		}
 	};
+
+	const [selfieFile, setSelfieFile] = React.useState<File | null>(null);
+
+	const handleSelfieUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (file) {
+			const allowedTypes = ["image/jpeg", "image/png"];
+			if (!allowedTypes.includes(file.type)) {
+				setError("verification", "Selfie must be a JPG or PNG image");
+				return;
+			}
+			setSelfieFile(file);
+			clearError("verification");
+		}
+	};
+
+	const handleVerificationSubmit = async () => {
+		if (!termsAccepted) {
+			setError("verification", "Please accept the terms and conditions");
+			return;
+		}
+
+		if (!idDocument) {
+			setError("verification", "Please upload a government-issued ID");
+			return;
+		}
+
+		setLoading(true);
+		try {
+			const response = await sellerOnboardingAPI.submitVerification({
+				idDocument,
+				selfieVerification: selfieFile || undefined,
+			});
+
+			const { status, decision } = response.data;
+
+			if (status === "approved" || decision === "AUTO_APPROVE") {
+				toast.success("Congratulations! Your account has been auto-approved.");
+			} else if (status === "pending") {
+				toast.info(
+					"Application submitted. Our team will review your documents shortly."
+				);
+			} else if (status === "rejected") {
+				toast.error(
+					response.data.message ||
+						"Application rejected due to high risk profile."
+				);
+				return;
+			}
+
+			setStepData("verification", {
+				completed: true,
+				status,
+				idDocumentUploaded: true,
+				selfieUploaded: !!selfieFile,
+			});
+
+			nextStep();
+		} catch (error) {
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: "Failed to submit verification";
+			setError("verification", errorMessage);
+			toast.error(errorMessage);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const canProceed = idDocument && termsAccepted;
 
 	return (
 		<div className="space-y-6">
@@ -528,52 +831,96 @@ export function VendorVerification() {
 			</Card>
 
 			<div className="grid gap-6">
-				<FormField label="Government-Issued ID">
+				<FormField label="Government-Issued ID" required>
 					<div className="flex items-center gap-4">
 						<div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center border-2 border-dashed border-muted-foreground/25">
 							<span className="text-2xl">🆔</span>
 						</div>
 						<div className="flex-1">
-							<Button variant="outline" className="mb-2">
-								Upload ID Document
+							<input
+								type="file"
+								accept="image/jpeg,image/png,application/pdf"
+								onChange={handleIdUpload}
+								className="hidden"
+								id="id-upload"
+							/>
+							<Button
+								variant="outline"
+								className="mb-2"
+								onClick={() => document.getElementById("id-upload")?.click()}
+							>
+								{idDocument ? "Change ID Document" : "Upload ID Document"}
 							</Button>
 							<p className="text-xs text-muted-foreground">
-								Driver&apos;s license, passport, or business license
+								Allowed types:{" "}
+								<span className="font-medium text-foreground">
+									JPG, PNG, PDF
+								</span>{" "}
+								(Max 5MB)
 							</p>
+							{idDocument && (
+								<p className="text-xs text-green-600 mt-1 font-medium italic">
+									✓ {idDocument.name}
+								</p>
+							)}
 						</div>
 					</div>
 				</FormField>
 
-				<FormField label="Business Registration (optional)">
+				<FormField label="Selfie Verification (Recommended)">
 					<div className="flex items-center gap-4">
 						<div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center border-2 border-dashed border-muted-foreground/25">
-							<span className="text-2xl">📄</span>
+							<span className="text-2xl">🤳</span>
 						</div>
 						<div className="flex-1">
-							<Button variant="outline" className="mb-2">
-								Upload Business Documents
+							<input
+								type="file"
+								accept="image/jpeg,image/png"
+								onChange={handleSelfieUpload}
+								className="hidden"
+								id="selfie-upload"
+							/>
+							<Button
+								variant="outline"
+								className="mb-2"
+								onClick={() =>
+									document.getElementById("selfie-upload")?.click()
+								}
+							>
+								{selfieFile ? "Change Selfie" : "Upload Selfie"}
 							</Button>
 							<p className="text-xs text-muted-foreground">
-								Articles of incorporation, DBA, etc.
+								Allowed types:{" "}
+								<span className="font-medium text-foreground">JPG, PNG</span>.
+								Hold your ID next to your face.
 							</p>
+							{selfieFile && (
+								<p className="text-xs text-green-600 mt-1 font-medium italic">
+									✓ {selfieFile.name}
+								</p>
+							)}
 						</div>
 					</div>
 				</FormField>
 
 				<div className="flex items-center space-x-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-					<Checkbox id="terms" />
+					<Checkbox
+						id="terms"
+						checked={termsAccepted}
+						onCheckedChange={(checked) => setTermsAccepted(!!checked)}
+					/>
 					<label htmlFor="terms" className="text-sm leading-relaxed">
 						I agree to Vendora&apos;s{" "}
 						<Button
 							variant="link"
-							className="p-0 h-auto text-blue-600 hover:text-blue-700"
+							className="p-0 h-auto text-blue-600 hover:text-blue-700 font-medium"
 						>
 							Terms of Service
 						</Button>{" "}
 						and{" "}
 						<Button
 							variant="link"
-							className="p-0 h-auto text-blue-600 hover:text-blue-700"
+							className="p-0 h-auto text-blue-600 hover:text-blue-700 font-medium"
 						>
 							Vendor Agreement
 						</Button>
@@ -583,10 +930,24 @@ export function VendorVerification() {
 
 			<Button
 				onClick={handleVerificationSubmit}
-				className="w-full bg-terracotta-600 hover:bg-terracotta-700"
+				disabled={!canProceed || isLoading}
+				className="w-full bg-black hover:bg-black/90 h-12 text-lg text-white font-medium shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
 			>
-				Complete Setup
+				{isLoading ? (
+					<div className="flex items-center gap-2">
+						<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+						Processing Verification...
+					</div>
+				) : (
+					"Complete Setup"
+				)}
 			</Button>
+
+			{errors["verification"] && (
+				<p className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg border border-destructive/20 text-center animate-in fade-in slide-in-from-top-1">
+					{errors["verification"]}
+				</p>
+			)}
 		</div>
 	);
 }

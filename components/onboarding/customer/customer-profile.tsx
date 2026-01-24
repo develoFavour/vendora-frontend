@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useOnboardingStore } from "@/lib/onboarding-store";
+import { useOnboardingStore } from "@/stores/onboarding-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -115,7 +115,7 @@ export function CustomerProfile() {
 
 			// Show celebration and redirect to customer dashboard
 			setShowCelebration(true);
-			const destination = "/customer/dashboard";
+			const destination = "/buyer/dashboard";
 			setTimeout(() => {
 				if (mountedRef.current) router.push(destination);
 			}, 7500);

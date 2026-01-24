@@ -1,6 +1,6 @@
 "use client";
 
-import { useOnboardingStore } from "@/lib/onboarding-store";
+import { useOnboardingStore } from "@/stores/onboarding-store";
 import { CategorySelector } from "@/components/onboarding";
 import { customerOnboardingAPI } from "@/lib/api";
 import { CATEGORIES } from "./constants";
@@ -10,8 +10,7 @@ export function CustomerInterests() {
 	const { stepData, setStepData, nextStep, setLoading, setError, clearError } =
 		useOnboardingStore();
 
-	const interestsData =
-		(stepData.interests as { categories?: string[] }) || {};
+	const interestsData = (stepData.interests as { categories?: string[] }) || {};
 	const selectedCategories = interestsData.categories || [];
 
 	const handleCategoryChange = (categories: string[]) => {

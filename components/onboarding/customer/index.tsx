@@ -1,6 +1,6 @@
 // Customer Onboarding Steps
 import React from "react";
-import { useOnboardingStore } from "@/lib/onboarding-store";
+import { useOnboardingStore } from "@/stores/onboarding-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 

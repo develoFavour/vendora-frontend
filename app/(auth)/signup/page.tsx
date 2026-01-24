@@ -86,26 +86,26 @@ export default function SignupPage() {
 	return (
 		<div className="w-full max-w-md mx-auto">
 			{/* Header */}
-			<div className="text-center mb-8">
-				<h2 className="font-serif text-4xl font-bold text-gray-900 mb-2">
-					Create Account
+			<div className="text-center mb-10">
+				<h2 className="text-4xl font-bold tracking-tight mb-3">
+					Create <span className="italic text-primary">Account.</span>
 				</h2>
-				<p className="text-gray-700">Join the Vendora community today</p>
+				<p className="text-zinc-600 font-medium">Join our global community of artisans.</p>
 			</div>
 
 			{/* Success message */}
 			{success && (
-				<div className="mb-6 p-4 backdrop-blur-md bg-sage-50/80 border border-sage-200/50 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300 shadow-lg">
-					<div className="flex items-start gap-3">
-						<CheckCircle2 className="w-5 h-5 text-sage-700 mt-0.5 flex-shrink-0" />
-						<div className="text-sm">
-							<p className="font-semibold text-sage-900 mb-1">
-								Account created successfully!
+				<div className="mb-8 p-6 backdrop-blur-xl bg-primary/5 border border-primary/20 rounded-[2rem] animate-in fade-in slide-in-from-top-4 duration-500 shadow-2xl shadow-primary/5">
+					<div className="flex items-start gap-4">
+						<div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-lg shadow-primary/20">
+							<CheckCircle2 className="w-5 h-5 text-white" />
+						</div>
+						<div className="space-y-1">
+							<p className="text-lg font-bold text-zinc-900 leading-tight">
+								Welcome to the family!
 							</p>
-							<p className="text-sage-800">
-								We&apos;ve sent a verification email to{" "}
-								<strong>{formData.email}</strong>. Please check your inbox and
-								click the verification link to continue.
+							<p className="text-sm text-zinc-600 leading-relaxed font-medium">
+								We&apos;ve sent a verification link to <span className="text-primary font-bold">{formData.email}</span>. Please verify to begin your experience.
 							</p>
 						</div>
 					</div>
@@ -114,116 +114,81 @@ export default function SignupPage() {
 
 			{/* Error message */}
 			{error && (
-				<div className="mb-6 p-4 backdrop-blur-md bg-red-50/80 border border-red-200/50 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300 shadow-lg">
-					<p className="text-sm text-red-900 font-medium">{error}</p>
+				<div className="mb-6 p-4 backdrop-blur-xl bg-red-50/50 border border-red-100 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300">
+					<p className="text-xs text-red-600 font-bold uppercase tracking-widest">{error}</p>
 				</div>
 			)}
 
-			<form onSubmit={handleSubmit} className="space-y-6">
+			<form onSubmit={handleSubmit} className="space-y-8 pb-12">
 				{/* Form fields with glassmorphic styling */}
 				<div className="space-y-4">
-					<div className="relative group">
-						<User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 z-10 transition-colors group-focus-within:text-sage-600" />
-						<input
-							type="text"
-							value={formData.name}
-							onChange={(e) =>
-								setFormData({ ...formData, name: e.target.value })
-							}
-							className="w-full pl-11 pr-4 py-3 backdrop-blur-md bg-white/40 border border-white/60 rounded-xl focus:ring-2 focus:ring-sage-500/50 focus:border-sage-500/50 focus:bg-white/50 transition-all text-gray-900 placeholder:text-gray-600"
-							placeholder="Full Name"
-							required
-						/>
-					</div>
+					{[
+						{ icon: User, name: "name", placeholder: "Full Name", type: "text" },
+						{ icon: Mail, name: "email", placeholder: "Email Address", type: "email" },
+						{ icon: Phone, name: "phone", placeholder: "Phone Number", type: "tel" },
+						{ icon: MapPin, name: "address", placeholder: "Primary Address", type: "text" }
+					].map((field) => (
+						<div key={field.name} className="relative group">
+							<field.icon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 z-10 transition-colors group-focus-within:text-primary" />
+							<input
+								type={field.type}
+								value={formData[field.name as keyof typeof formData]}
+								onChange={(e) =>
+									setFormData({ ...formData, [field.name]: e.target.value })
+								}
+								className="w-full pl-12 pr-4 py-4 backdrop-blur-xl bg-white/20 border border-white/40 rounded-2xl focus:ring-4 focus:ring-primary/5 focus:border-primary/40 focus:bg-white/40 transition-all text-zinc-900 placeholder:text-zinc-400 font-medium"
+								placeholder={field.placeholder}
+								required
+							/>
+						</div>
+					))}
 
 					<div className="relative group">
-						<Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 z-10 transition-colors group-focus-within:text-sage-600" />
-						<input
-							type="email"
-							value={formData.email}
-							onChange={(e) =>
-								setFormData({ ...formData, email: e.target.value })
-							}
-							className="w-full pl-11 pr-4 py-3 backdrop-blur-md bg-white/40 border border-white/60 rounded-xl focus:ring-2 focus:ring-sage-500/50 focus:border-sage-500/50 focus:bg-white/50 transition-all text-gray-900 placeholder:text-gray-600"
-							placeholder="Email Address"
-							required
-						/>
-					</div>
-
-					<div className="relative group">
-						<Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 z-10 transition-colors group-focus-within:text-sage-600" />
-						<input
-							type="tel"
-							value={formData.phone}
-							onChange={(e) =>
-								setFormData({ ...formData, phone: e.target.value })
-							}
-							className="w-full pl-11 pr-4 py-3 backdrop-blur-md bg-white/40 border border-white/60 rounded-xl focus:ring-2 focus:ring-sage-500/50 focus:border-sage-500/50 focus:bg-white/50 transition-all text-gray-900 placeholder:text-gray-600"
-							placeholder="Phone Number"
-							required
-						/>
-					</div>
-
-					<div className="relative group">
-						<MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 z-10 transition-colors group-focus-within:text-sage-600" />
-						<input
-							type="text"
-							value={formData.address}
-							onChange={(e) =>
-								setFormData({ ...formData, address: e.target.value })
-							}
-							className="w-full pl-11 pr-4 py-3 backdrop-blur-md bg-white/40 border border-white/60 rounded-xl focus:ring-2 focus:ring-sage-500/50 focus:border-sage-500/50 focus:bg-white/50 transition-all text-gray-900 placeholder:text-gray-600"
-							placeholder="Address"
-							required
-						/>
-					</div>
-
-					<div className="relative group">
-						<Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 z-10 transition-colors group-focus-within:text-sage-600" />
+						<Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 z-10 transition-colors group-focus-within:text-primary" />
 						<input
 							type={showPassword ? "text" : "password"}
 							value={formData.password}
 							onChange={(e) =>
 								setFormData({ ...formData, password: e.target.value })
 							}
-							className="w-full pl-11 pr-12 py-3 backdrop-blur-md bg-white/40 border border-white/60 rounded-xl focus:ring-2 focus:ring-sage-500/50 focus:border-sage-500/50 focus:bg-white/50 transition-all text-gray-900 placeholder:text-gray-600"
-							placeholder="Password"
+							className="w-full pl-12 pr-12 py-4 backdrop-blur-xl bg-white/20 border border-white/40 rounded-2xl focus:ring-4 focus:ring-primary/5 focus:border-primary/40 focus:bg-white/40 transition-all text-zinc-900 placeholder:text-zinc-400 font-medium"
+							placeholder="Create Password"
 							required
 						/>
 						<button
 							type="button"
 							onClick={() => setShowPassword(!showPassword)}
-							className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900 transition-colors z-10"
+							className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-primary transition-colors z-10"
 						>
 							{showPassword ? (
-								<EyeOff className="w-5 h-5" />
+								<EyeOff className="w-4 h-4" />
 							) : (
-								<Eye className="w-5 h-5" />
+								<Eye className="w-4 h-4" />
 							)}
 						</button>
 					</div>
 
 					<div className="relative group">
-						<Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 z-10 transition-colors group-focus-within:text-sage-600" />
+						<Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 z-10 transition-colors group-focus-within:text-primary" />
 						<input
 							type={showConfirmPassword ? "text" : "password"}
 							value={formData.confirmPassword}
 							onChange={(e) =>
 								setFormData({ ...formData, confirmPassword: e.target.value })
 							}
-							className="w-full pl-11 pr-12 py-3 backdrop-blur-md bg-white/40 border border-white/60 rounded-xl focus:ring-2 focus:ring-sage-500/50 focus:border-sage-500/50 focus:bg-white/50 transition-all text-gray-900 placeholder:text-gray-600"
+							className="w-full pl-12 pr-12 py-4 backdrop-blur-xl bg-white/20 border border-white/40 rounded-2xl focus:ring-4 focus:ring-primary/5 focus:border-primary/40 focus:bg-white/40 transition-all text-zinc-900 placeholder:text-zinc-400 font-medium"
 							placeholder="Confirm Password"
 							required
 						/>
 						<button
 							type="button"
 							onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-							className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900 transition-colors z-10"
+							className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-primary transition-colors z-10"
 						>
 							{showConfirmPassword ? (
-								<EyeOff className="w-5 h-5" />
+								<EyeOff className="w-4 h-4" />
 							) : (
-								<Eye className="w-5 h-5" />
+								<Eye className="w-4 h-4" />
 							)}
 						</button>
 					</div>
@@ -233,29 +198,29 @@ export default function SignupPage() {
 				<Button
 					type="submit"
 					disabled={loading}
-					className="w-full py-6 bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
+					className="w-full py-8 bg-primary hover:bg-primary/90 text-white rounded-[2rem] font-bold text-lg shadow-2xl shadow-primary/20 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] border-none"
 				>
 					{loading ? (
-						<div className="flex items-center justify-center gap-2">
+						<div className="flex items-center justify-center gap-3">
 							<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-							Creating Account...
+							Crafting Account...
 						</div>
 					) : (
-						<div className="flex items-center justify-center gap-2">
-							<Sparkles className="w-5 h-5" />
-							Create Account
+						<div className="flex items-center justify-center gap-3 tracking-[0.3em] uppercase text-xs">
+							<Sparkles className="w-4 h-4" />
+							Begin Your Journey
 						</div>
 					)}
 				</Button>
 
 				{/* Sign in link */}
-				<p className="text-center text-sm text-gray-800">
-					Already have an account?{" "}
+				<p className="text-center text-xs text-zinc-500 font-bold uppercase tracking-[0.2em]">
+					Already a Member?{" "}
 					<Link
 						href="/login"
-						className="font-semibold text-sage-700 hover:text-sage-800 transition-colors"
+						className="text-primary hover:text-primary/80 transition-colors ml-2"
 					>
-						Sign in
+						Sign In
 					</Link>
 				</p>
 			</form>

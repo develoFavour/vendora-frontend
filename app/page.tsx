@@ -148,8 +148,9 @@ export default function HomePage() {
 							<Badge className="mb-6 w-fit bg-accent/10 text-accent hover:bg-accent/20">
 								Supporting Local Businesses
 							</Badge>
-							<h1 className="font-serif text-5xl font-bold leading-tight tracking-tight text-balance sm:text-6xl lg:text-7xl">
-								Where independent sellers thrive
+							<h1 className="text-5xl md:text-7xl lg:text-8xl tracking-tighter text-balance">
+								Where independent <br />
+								<span className="text-primary italic">sellers thrive.</span>
 							</h1>
 							<p className="mt-6 text-lg text-muted-foreground leading-relaxed text-pretty">
 								Discover unique products from passionate creators. One
@@ -266,13 +267,13 @@ export default function HomePage() {
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 					<div className="flex items-end justify-between mb-12">
 						<div>
-							<Badge className="mb-4 bg-terracotta/10 text-terracotta border-terracotta/20">
+							<Badge className="mb-4 bg-terracotta/10 text-terracotta border-terracotta/20 font-bold tracking-widest uppercase text-[10px]">
 								Trending Now
 							</Badge>
-							<h2 className="font-serif text-4xl font-bold tracking-tight sm:text-5xl">
-								Featured Products
+							<h2 className="text-4xl md:text-5xl lg:text-6xl">
+								Featured <span className="italic text-primary">Products</span>
 							</h2>
-							<p className="mt-4 text-lg text-muted-foreground">
+							<p className="mt-6 text-lg text-muted-foreground">
 								Handpicked items from our top vendors
 							</p>
 						</div>
@@ -315,14 +316,14 @@ export default function HomePage() {
 			{/* Categories Section */}
 			<section className="py-16 sm:py-24 bg-gradient-to-br from-cream/30 to-background border-b border-border">
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-					<div className="text-center mb-12">
-						<Badge className="mb-4 bg-sage/10 text-sage border-sage/20">
+					<div className="text-center mb-16">
+						<Badge className="mb-4 bg-sage/10 text-sage border-sage/20 font-bold tracking-widest uppercase text-[10px]">
 							Browse by Category
 						</Badge>
-						<h2 className="font-serif text-4xl font-bold tracking-tight sm:text-5xl">
-							Shop What You Love
+						<h2 className="text-4xl md:text-5xl lg:text-6xl">
+							Shop What You <span className="italic">Love</span>
 						</h2>
-						<p className="mt-4 text-lg text-muted-foreground">
+						<p className="mt-6 text-lg text-muted-foreground">
 							Explore thousands of unique products across categories
 						</p>
 					</div>
@@ -359,13 +360,13 @@ export default function HomePage() {
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 					<div className="flex items-end justify-between mb-12">
 						<div>
-							<Badge className="mb-4 bg-sage/10 text-sage border-sage/20">
+							<Badge className="mb-4 bg-sage/10 text-sage border-sage/20 font-bold tracking-widest uppercase text-[10px]">
 								Vendor Spotlight
 							</Badge>
-							<h2 className="font-serif text-4xl font-bold tracking-tight sm:text-5xl">
-								Meet Our Makers
+							<h2 className="text-4xl md:text-5xl lg:text-6xl">
+								Meet Our <span className="italic text-primary">Makers</span>
 							</h2>
-							<p className="mt-4 text-lg text-muted-foreground">
+							<p className="mt-6 text-lg text-muted-foreground">
 								Discover the talented artisans behind your favorite products
 							</p>
 						</div>
@@ -410,10 +411,10 @@ export default function HomePage() {
 			<section className="border-b border-border py-16 sm:py-24">
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 					<div className="text-center">
-						<h2 className="font-serif text-4xl font-bold tracking-tight sm:text-5xl">
-							How Vendora Works
+						<h2 className="text-4xl md:text-5xl lg:text-6xl">
+							How Vendora <span className="italic">Works</span>
 						</h2>
-						<p className="mt-4 text-lg text-muted-foreground">
+						<p className="mt-6 text-lg text-muted-foreground">
 							A seamless experience for buyers and sellers alike
 						</p>
 					</div>
@@ -462,11 +463,12 @@ export default function HomePage() {
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 					<div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
 						<div>
-							<Badge className="mb-6 bg-primary/10 text-primary hover:bg-primary/20">
+							<Badge className="mb-6 bg-primary/10 text-primary hover:bg-primary/20 font-bold tracking-widest uppercase text-[10px]">
 								For Vendors
 							</Badge>
-							<h2 className="font-serif text-4xl font-bold tracking-tight sm:text-5xl text-balance">
-								Your store, your rules, our platform
+							<h2 className="text-4xl md:text-5xl lg:text-6xl text-balance">
+								Your store, <span className="italic">your rules,</span> <br />
+								our platform.
 							</h2>
 							<p className="mt-6 text-lg text-muted-foreground leading-relaxed">
 								Join thousands of independent sellers who trust Vendora to power
@@ -572,10 +574,11 @@ export default function HomePage() {
 			{/* CTA Section */}
 			<section className="border-t border-border py-16 sm:py-24">
 				<div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-					<h2 className="font-serif text-4xl font-bold tracking-tight sm:text-5xl text-balance">
-						Ready to join the marketplace?
+					<h2 className="text-4xl md:text-6xl lg:text-7xl">
+						Ready to join the <br />
+						<span className="italic text-primary">marketplace?</span>
 					</h2>
-					<p className="mt-6 text-lg text-muted-foreground">
+					<p className="mt-8 text-xl text-muted-foreground max-w-2xl mx-auto">
 						Whether you&apos;re looking to discover unique products or start
 						selling your own, Vendora is here for you.
 					</p>

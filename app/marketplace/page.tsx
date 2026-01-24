@@ -121,14 +121,22 @@ export default function MarketplacePage() {
 		<div className="flex min-h-screen flex-col">
 			<Navigation />
 
-			{/* Header */}
-			<section className="border-b border-border bg-muted/30">
-				<div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-					<h1 className="font-serif text-4xl font-bold tracking-tight sm:text-5xl">
-						Marketplace
+			{/* Header Section */}
+			<section className="relative overflow-hidden bg-zinc-950 py-24 px-4 text-white rounded-b-[4rem]">
+				<div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+				<div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-primary/20 blur-[130px]" />
+				<div className="absolute -left-20 -bottom-20 h-96 w-96 rounded-full bg-accent/20 blur-[130px]" />
+
+				<div className="mx-auto max-w-7xl relative z-10 text-center">
+					<Badge className="mb-8 bg-white/10 text-white hover:bg-white/20 backdrop-blur-2xl border-white/10 py-1.5 px-6 text-[10px] font-bold uppercase tracking-[0.3em]">
+						The Collectors Gallery
+					</Badge>
+					<h1 className="text-5xl md:text-8xl tracking-tighter mb-8 leading-[0.9]">
+						The Art of <br />
+						<span className="text-primary italic">Handmade.</span>
 					</h1>
-					<p className="mt-4 text-lg text-muted-foreground">
-						Discover unique products from independent sellers
+					<p className="mx-auto mt-8 max-w-2xl text-xl text-zinc-400 font-medium leading-relaxed italic">
+						&ldquo;Beyond the ordinary. Discover a curated collection of exceptional pieces crafted with soul and purpose.&rdquo;
 					</p>
 				</div>
 			</section>
@@ -138,12 +146,12 @@ export default function MarketplacePage() {
 				<div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
 					<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 						{/* Search */}
-						<div className="relative flex-1 max-w-md">
-							<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+						<div className="relative flex-1 max-w-md group">
+							<Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
 							<Input
 								type="search"
-								placeholder="Search products..."
-								className="pl-10"
+								placeholder="Search the collections..."
+								className="h-14 pl-12 rounded-2xl border-border/40 bg-zinc-50/50 backdrop-blur-xl focus:ring-primary/10 transition-all font-medium"
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
 							/>
@@ -152,15 +160,15 @@ export default function MarketplacePage() {
 						{/* Sort and Filter */}
 						<div className="flex items-center gap-3">
 							<Select defaultValue="featured">
-								<SelectTrigger className="w-[180px]">
+								<SelectTrigger className="h-14 w-[180px] rounded-2xl border-border/40 bg-zinc-50/50 backdrop-blur-xl transition-all focus:ring-primary/10">
 									<SelectValue placeholder="Sort by" />
 								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="featured">Featured</SelectItem>
+								<SelectContent className="rounded-2xl border-border/40 backdrop-blur-3xl bg-white/80">
+									<SelectItem value="featured">Featured Gallery</SelectItem>
 									<SelectItem value="price-low">Price: Low to High</SelectItem>
 									<SelectItem value="price-high">Price: High to Low</SelectItem>
 									<SelectItem value="rating">Highest Rated</SelectItem>
-									<SelectItem value="newest">Newest</SelectItem>
+									<SelectItem value="newest">New Collections</SelectItem>
 								</SelectContent>
 							</Select>
 
@@ -168,9 +176,9 @@ export default function MarketplacePage() {
 								variant="outline"
 								size="default"
 								onClick={() => setShowFilters(!showFilters)}
-								className="gap-2"
+								className="h-14 px-6 gap-3 rounded-2xl border-border/40 bg-zinc-50/50 backdrop-blur-xl hover:bg-zinc-100 transition-all font-bold text-xs uppercase tracking-widest"
 							>
-								<SlidersHorizontal className="h-4 w-4" />
+								<SlidersHorizontal className="h-4 w-4 text-primary" />
 								Filters
 								{showFilters && <X className="h-4 w-4" />}
 							</Button>

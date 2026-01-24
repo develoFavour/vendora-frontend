@@ -176,11 +176,10 @@ export default function ProductDetailPage() {
 									<button
 										key={index}
 										onClick={() => setSelectedImage(index)}
-										className={`aspect-square overflow-hidden rounded-lg border-2 ${
-											selectedImage === index
+										className={`aspect-square overflow-hidden rounded-lg border-2 ${selectedImage === index
 												? "border-primary"
 												: "border-border"
-										}`}
+											}`}
 									>
 										<Image
 											height={100}
@@ -197,48 +196,42 @@ export default function ProductDetailPage() {
 						{/* Product Info */}
 						<div className="space-y-6">
 							<div>
-								<div className="mb-3 flex items-center gap-2">
-									<Badge variant="secondary">{product.category}</Badge>
-									{product.stock < 20 && (
+								<div className="mb-4 flex items-center gap-3">
+									<Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors py-1 px-4 text-[10px] font-bold uppercase tracking-widest">
+										{product.category}
+									</Badge>
+									{product.stock < 15 && (
 										<Badge
 											variant="outline"
-											className="border-accent text-accent"
+											className="border-amber-500/30 bg-amber-500/5 text-amber-600 py-1 px-4 text-[10px] font-bold uppercase tracking-widest animate-pulse"
 										>
-											Only {product.stock} left
+											Limited Edition: Only {product.stock} left
 										</Badge>
 									)}
 								</div>
-								<h1 className="font-serif text-3xl font-bold tracking-tight sm:text-4xl">
+								<h1 className="text-4xl md:text-6xl tracking-tighter leading-[1.1] mb-6">
 									{product.name}
 								</h1>
-								<div className="mt-3 flex items-center gap-4">
-									<div className="flex items-center gap-1">
-										{Array.from({ length: 5 }).map((_, i) => (
-											<Star
-												key={i}
-												className={`h-5 w-5 ${
-													i < Math.floor(product.rating)
-														? "fill-primary text-primary"
-														: "fill-muted text-muted-foreground"
-												}`}
-											/>
-										))}
+								<div className="mt-4 flex items-center gap-6">
+									<div className="flex items-center gap-1.5 bg-zinc-50 px-3 py-1.5 rounded-full border border-zinc-100 shadow-sm">
+										<Star className="h-4 w-4 fill-primary text-primary" />
+										<span className="text-sm font-bold tracking-tight">{product.rating}</span>
 									</div>
-									<span className="text-sm text-muted-foreground">
-										{product.rating} ({product.reviews} reviews)
+									<span className="text-sm text-zinc-400 font-medium tracking-wide">
+										{product.reviews} Artisan Reviews
 									</span>
 								</div>
 							</div>
 
-							<div className="flex items-baseline gap-3">
-								<span className="text-4xl font-bold">${product.price}</span>
-								<span className="text-sm text-muted-foreground">
-									SKU: {product.sku}
+							<div className="flex items-baseline gap-4 py-4">
+								<span className="text-5xl font-bold tracking-tighter">${product.price}</span>
+								<span className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
+									Ref: {product.sku}
 								</span>
 							</div>
 
-							<p className="text-muted-foreground leading-relaxed">
-								{product.description}
+							<p className="text-lg text-muted-foreground leading-[1.8] font-medium italic">
+								&ldquo;{product.description}&rdquo;
 							</p>
 
 							{/* Vendor Info */}
@@ -332,37 +325,19 @@ export default function ProductDetailPage() {
 								</div>
 							</div>
 
-							{/* Shipping Info */}
-							<div className="space-y-3 rounded-lg border border-border p-4">
-								<div className="flex items-start gap-3">
-									<Truck className="h-5 w-5 text-primary" />
-									<div>
-										<div className="font-medium">Free Shipping</div>
-										<div className="text-sm text-muted-foreground">
-											On orders over $50
-										</div>
+							{/* Shipping Info - High End Cards */}
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-10">
+								{[
+									{ icon: Truck, title: "Sovereign Shipping", desc: "Global delivery expertise." },
+									{ icon: Shield, title: "Artisan Quality", desc: "Verified craftsmanship." },
+									{ icon: RotateCcw, title: "Master Return", desc: "30-day elite guarantee." }
+								].map((item, idx) => (
+									<div key={idx} className="group p-6 rounded-3xl border border-border/40 bg-zinc-50/50 hover:bg-white hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500">
+										<item.icon className="h-6 w-6 text-primary mb-4" />
+										<div className="text-[10px] font-bold uppercase tracking-[0.2em] mb-1">{item.title}</div>
+										<div className="text-[10px] text-zinc-400 font-medium">{item.desc}</div>
 									</div>
-								</div>
-								<Separator />
-								<div className="flex items-start gap-3">
-									<Shield className="h-5 w-5 text-primary" />
-									<div>
-										<div className="font-medium">Secure Payment</div>
-										<div className="text-sm text-muted-foreground">
-											Your payment information is safe
-										</div>
-									</div>
-								</div>
-								<Separator />
-								<div className="flex items-start gap-3">
-									<RotateCcw className="h-5 w-5 text-primary" />
-									<div>
-										<div className="font-medium">30-Day Returns</div>
-										<div className="text-sm text-muted-foreground">
-											Easy returns and exchanges
-										</div>
-									</div>
-								</div>
+								))}
 							</div>
 						</div>
 					</div>
@@ -444,11 +419,10 @@ export default function ProductDetailPage() {
 													{Array.from({ length: 5 }).map((_, i) => (
 														<Star
 															key={i}
-															className={`h-4 w-4 ${
-																i < Math.floor(product.rating)
+															className={`h-4 w-4 ${i < Math.floor(product.rating)
 																	? "fill-primary text-primary"
 																	: "fill-muted text-muted-foreground"
-															}`}
+																}`}
 														/>
 													))}
 												</div>
@@ -466,9 +440,8 @@ export default function ProductDetailPage() {
 															<div
 																className="h-full rounded-full bg-primary"
 																style={{
-																	width: `${
-																		stars === 5 ? 75 : stars === 4 ? 20 : 5
-																	}%`,
+																	width: `${stars === 5 ? 75 : stars === 4 ? 20 : 5
+																		}%`,
 																}}
 															/>
 														</div>
@@ -502,11 +475,10 @@ export default function ProductDetailPage() {
 																{Array.from({ length: 5 }).map((_, i) => (
 																	<Star
 																		key={i}
-																		className={`h-4 w-4 ${
-																			i < review.rating
+																		className={`h-4 w-4 ${i < review.rating
 																				? "fill-primary text-primary"
 																				: "fill-muted text-muted-foreground"
-																		}`}
+																			}`}
 																	/>
 																))}
 															</div>
@@ -586,11 +558,20 @@ export default function ProductDetailPage() {
 						</Tabs>
 					</div>
 
-					{/* Related Products */}
-					<div className="mt-16">
-						<h2 className="mb-8 font-serif text-3xl font-bold">
-							More from {product.vendor.name}
-						</h2>
+					<div className="mt-32">
+						<div className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b border-border/40 pb-10">
+							<div>
+								<Badge className="mb-4 bg-primary/10 text-primary border-primary/20 font-bold tracking-widest uppercase text-[10px]">
+									Boutique Curation
+								</Badge>
+								<h2 className="text-4xl md:text-5xl lg:text-6xl tracking-tighter">
+									More from <span className="italic text-primary">{product.vendor.name}</span>
+								</h2>
+							</div>
+							<Button variant="ghost" className="hidden md:flex font-bold tracking-widest text-xs uppercase text-zinc-400 hover:text-primary transition-colors" asChild>
+								<Link href={`/vendors/${product.vendor.id}`}>View Full Gallery</Link>
+							</Button>
+						</div>
 						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 							{relatedProducts.map((relatedProduct) => (
 								<ProductCard

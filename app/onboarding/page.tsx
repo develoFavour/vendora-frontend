@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useOnboardingStore } from "@/lib/onboarding-store";
+import { useOnboardingStore } from "@/stores/onboarding-store";
 import { OnboardingLayout } from "@/components/onboarding";
 import {
 	CustomerWelcome,
@@ -108,6 +108,7 @@ export default function OnboardingPage() {
 					: "Let's personalize your shopping experience"
 			}
 			isLoading={isLoading}
+			showNextButton={currentStepData.id !== "verification"}
 		>
 			<CurrentStepComponent />
 		</OnboardingLayout>
