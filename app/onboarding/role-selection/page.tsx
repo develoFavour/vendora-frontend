@@ -66,18 +66,18 @@ export default function RoleSelectionPage() {
 								</div>
 
 								<h2 className="text-4xl font-bold text-white mb-6 tracking-tight">
-									The <span className="italic text-primary">Collector.</span>
+									The <span className="italic text-primary">Buyer.</span>
 								</h2>
 
 								<p className="text-zinc-400 leading-relaxed mb-10 font-medium italic">
-									&ldquo;Discover unique, handcrafted products from the world&apos;s most skilled artisans.&rdquo;
+									&ldquo;Discover unique, handcrafted products from the world&apos;s most skilled sellers.&rdquo;
 								</p>
 
 								<div className="space-y-4 mb-12 w-full max-w-xs">
 									{[
 										"Elite product curation",
 										"Global boutique access",
-										"Artisan direct connections"
+										"Sellers direct connections"
 									].map((feature, i) => (
 										<div key={i} className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">
 											<div className="w-1.5 h-1.5 rounded-full bg-primary" />
@@ -90,7 +90,7 @@ export default function RoleSelectionPage() {
 									className="w-full h-16 rounded-full bg-primary hover:bg-primary/90 text-white font-bold text-lg shadow-2xl shadow-primary/20 transition-all"
 									disabled={submitting}
 								>
-									{submitting ? "Preparing..." : "Enter as Collector"}
+									{submitting ? "Preparing..." : "Enter as Buyer"}
 									<ArrowRight className="w-5 h-5 ml-2" />
 								</Button>
 							</div>
@@ -109,7 +109,7 @@ export default function RoleSelectionPage() {
 								</div>
 
 								<h2 className="text-4xl font-bold text-white mb-6 tracking-tight">
-									The <span className="italic text-accent">Artisan.</span>
+									The <span className="italic text-accent">Seller.</span>
 								</h2>
 
 								<p className="text-zinc-400 leading-relaxed mb-10 font-medium italic">
@@ -133,7 +133,7 @@ export default function RoleSelectionPage() {
 									className="w-full h-16 rounded-full bg-accent hover:bg-accent/90 text-white font-bold text-lg shadow-2xl shadow-accent/20 transition-all"
 									disabled={submitting}
 								>
-									{submitting ? "Preparing..." : "Begin as Artisan"}
+									{submitting ? "Preparing..." : "Begin as Seller"}
 									<ArrowRight className="w-5 h-5 ml-2" />
 								</Button>
 							</div>

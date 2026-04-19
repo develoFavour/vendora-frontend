@@ -10,7 +10,10 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/hooks/use-wishlist";
 import { useCart, useAddToCart, useUpdateCartQuantity } from "@/hooks/use-cart";
+import { useAuthStore } from "@/stores/auth-store";
+import { useGuestCartStore } from "@/stores/guest-cart-store";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface ProductCardProps {
 	id: string;
@@ -39,7 +42,10 @@ export function ProductCard({
 	const numPrice = typeof price === "string" ? parseFloat(price) : price;
 	const displayPrice = typeof price === "number" ? `$${price.toLocaleString()}` : (price || "$0.00");
 
-	// Hooks
+	const router = useRouter();
+	const { isAuthenticated } = useAuthStore();
+
+	// Auth hooks (only run when logged in, thanks to enabled flag)
 	const { data: wishlistData } = useWishlist();
 	const { data: cartData } = useCart();
 	const addToWishlist = useAddToWishlist();
@@ -47,12 +53,19 @@ export function ProductCard({
 	const addToCart = useAddToCart();
 	const updateCartQuantity = useUpdateCartQuantity();
 
-	// Derived State
-	const isWishlisted = wishlistData?.data?.wishlist?.productIds?.includes(id);
+	// Guest cart (localStorage)
+	const guestCart = useGuestCartStore();
 
-	// Safe cart access
+	// Derived State
+	const isWishlisted = isAuthenticated
+		? wishlistData?.data?.wishlist?.productIds?.includes(id)
+		: false;
+
+	// Cart quantity — pick from right source
 	const cartItems = cartData?.data?.cart?.items || [];
-	const cartItem = cartItems.find((item: any) => item.productId === id);
+	const authCartItem = cartItems.find((item: any) => item.productId === id);
+	const guestCartItem = guestCart.items.find((item) => item.productId === id);
+	const cartItem = isAuthenticated ? authCartItem : guestCartItem;
 	const quantityInCart = cartItem ? cartItem.quantity : 0;
 
 	// Note: We don't have max stock here on the card list view usually. 
@@ -61,7 +74,12 @@ export function ProductCard({
 	// For now let's assume if it is "inStock" prop (boolean), we allow adding reasonably.
 
 	const handleWishlistToggle = (e: React.MouseEvent) => {
-		e.preventDefault(); // Prevent link navigation
+		e.preventDefault();
+		if (!isAuthenticated) {
+			toast.info("Sign in to save items to your wishlist");
+			router.push("/login");
+			return;
+		}
 		if (isWishlisted) {
 			removeFromWishlist.mutate(id);
 		} else {
@@ -71,27 +89,23 @@ export function ProductCard({
 
 	const handleAddToCart = (e: React.MouseEvent) => {
 		e.preventDefault();
-		addToCart.mutate({
-			productId: id,
-			quantity: 1,
-			price: numPrice || 0,
-			name: name,
-		});
+		if (isAuthenticated) {
+			addToCart.mutate({ productId: id, quantity: 1, price: numPrice || 0, name });
+		} else {
+			guestCart.addItem({ productId: id, name, price: numPrice || 0, quantity: 1, image, vendor });
+			toast.success("Added to bag — sign in to checkout!");
+		}
 	};
 
 	const handleUpdateQuantity = (e: React.MouseEvent, newQty: number) => {
 		e.preventDefault();
 		if (newQty < 0) return;
-		// If newQty is 0, backend might handle it or we explicitly remove? 
-		// Our hook doesn't auto-remove on 0 usually, but let's just allow updates >= 1 here for "calculator" style.
-		// If user wants to remove, they might need a explicit remove button or go to 0. 
-		// For card UI, usually - / + keeps it in cart.
-		if (newQty === 0) return; // Keeping simple for card view
-
-		updateCartQuantity.mutate({
-			productId: id,
-			quantity: newQty
-		});
+		if (newQty === 0) return;
+		if (isAuthenticated) {
+			updateCartQuantity.mutate({ productId: id, quantity: newQty });
+		} else {
+			guestCart.updateQuantity(id, newQty);
+		}
 	};
 
 
@@ -107,7 +121,7 @@ export function ProductCard({
 		>
 			<Card className="relative h-full overflow-hidden border-0 bg-transparent shadow-none transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5">
 				{/* Image Container */}
-				<Link href={`/buyer/dashboard/marketplace/${id}`}>
+				<Link href={`/products/${id}`}>
 					<div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-muted/20 border border-white/5">
 						<AnimatePresence>
 							<motion.img
@@ -203,7 +217,7 @@ export function ProductCard({
 				{/* Content */}
 				<div className="mt-6 space-y-1 px-1">
 					<div className="flex items-center justify-between">
-						<span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
+						<span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
 							{vendor}
 						</span>
 						<div className="flex items-center gap-1 text-[10px] font-bold text-amber-500">
@@ -212,17 +226,17 @@ export function ProductCard({
 						</div>
 					</div>
 
-					<Link href={`/buyer/dashboard/marketplace/${id}`} className="block group/title">
-						<h3 className="font-serif text-xl font-bold leading-tight decoration-primary/30 underline-offset-4 group-hover/title:underline text-zinc-200">
+					<Link href={`/products/${id}`} className="block group/title">
+						<h3 className="font-serif text-xl font-bold leading-tight decoration-primary/30 underline-offset-4 group-hover/title:underline text-foreground">
 							{name}
 						</h3>
 					</Link>
 
 					<div className="flex items-center justify-between pt-2">
-						<span className="text-lg font-bold tracking-tight text-white">
+						<span className="text-lg font-bold tracking-tight text-foreground">
 							{displayPrice}
 						</span>
-						<div className="h-px flex-1 mx-4 bg-zinc-800" />
+						<div className="h-px flex-1 mx-4 bg-border/50" />
 						<span className="text-[10px] font-bold uppercase tracking-widest text-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100">
 							Shop Now
 						</span>

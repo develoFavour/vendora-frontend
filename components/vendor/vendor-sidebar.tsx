@@ -11,10 +11,11 @@ import {
 	LogOut,
 	Store,
 	MessageSquare,
+	Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/stores/auth-store";
 import { useRouter } from "next/navigation";
 import { clearAuthTokens } from "@/lib/api";
@@ -24,6 +25,7 @@ const navigation = [
 	{ name: "Overview", href: "/vendor/dashboard", icon: LayoutDashboard },
 	{ name: "Products", href: "/vendor/dashboard/products", icon: Package },
 	{ name: "Orders", href: "/vendor/dashboard/orders", icon: ShoppingBag },
+	{ name: "Wallet", href: "/vendor/dashboard/wallet", icon: Wallet },
 	{ name: "Analytics", href: "/vendor/dashboard/analytics", icon: BarChart3 },
 	{ name: "Reviews", href: "/vendor/dashboard/reviews", icon: MessageSquare },
 	{ name: "Settings", href: "/vendor/dashboard/settings", icon: Settings },
@@ -64,6 +66,7 @@ export function VendorSidebar() {
 			<div className="border-b border-border p-6">
 				<div className="flex items-center gap-3">
 					<Avatar className="h-10 w-10">
+						<AvatarImage src={(user as any)?.profile?.profileImage || (user as any)?.profilePicture} alt={user?.name || "Vendor"} className="object-cover" />
 						<AvatarFallback className="bg-primary/10 text-primary">
 							{initials}
 						</AvatarFallback>

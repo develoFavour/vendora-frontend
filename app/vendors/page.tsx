@@ -15,86 +15,31 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { VendorCard } from "@/components/marketplace/vendor-card";
-import { Search, MapPin } from "lucide-react";
+import { Search, MapPin, Loader2, PackageOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { usePublicVendors } from "@/hooks/use-public-vendors";
+import { usePublicCategories } from "@/hooks/use-public-products";
 
 export default function VendorsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
+	const [selectedCategory, setSelectedCategory] = useState("all");
+	const [page, setPage] = useState(1);
+	const limit = 12;
 
-	const vendors = [
-		{
-			id: "1",
-			name: "Artisan Pottery Co.",
-			description:
-				"Handmade ceramics crafted with love and care. Each piece tells a unique story.",
-			image: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800&q=80",
-			location: "Portland, OR",
-			rating: 4.9,
-			products: 45,
-			verified: true,
-			category: "Home & Living",
-		},
-		{
-			id: "2",
-			name: "EcoStyle Goods",
-			description:
-				"Sustainable fashion and accessories for the conscious consumer.",
-			image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
-			location: "Austin, TX",
-			rating: 4.8,
-			products: 78,
-			verified: true,
-			category: "Fashion",
-		},
-		{
-			id: "3",
-			name: "Timber & Grain",
-			description:
-				"Premium woodwork and home essentials handcrafted from sustainable materials.",
-			image: "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=800&q=80",
-			location: "Seattle, WA",
-			rating: 5.0,
-			products: 32,
-			verified: true,
-			category: "Home & Living",
-		},
-		{
-			id: "4",
-			name: "Lumière Candle Co.",
-			description:
-				"Hand-poured soy candles with natural fragrances for your home sanctuary.",
-			image: "https://images.unsplash.com/photo-1603006905003-be475563bc59?w=800&q=80",
-			location: "Nashville, TN",
-			rating: 4.7,
-			products: 24,
-			verified: true,
-			category: "Home & Living",
-		},
-		{
-			id: "5",
-			name: "Heritage Leather Co.",
-			description:
-				"Traditional leather goods made with time-honored techniques.",
-			image: "https://images.unsplash.com/photo-1517502884422-41eaead166d4?w=800&q=80",
-			location: "Denver, CO",
-			rating: 4.9,
-			products: 56,
-			verified: true,
-			category: "Fashion",
-		},
-		{
-			id: "6",
-			name: "Mountain Roasters",
-			description:
-				"Small-batch coffee roasted to perfection from ethically sourced beans.",
-			image: "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=800&q=80",
-			location: "Boulder, CO",
-			rating: 4.8,
-			products: 18,
-			verified: true,
-			category: "Food & Beverages",
-		},
-	];
+	const { data: vendorsRes, isLoading, isError } = usePublicVendors({
+		page,
+		limit,
+		search: searchQuery,
+		category: selectedCategory === "all" ? "" : selectedCategory
+	});
+
+	const { data: categoriesRes } = usePublicCategories();
+	const categories = categoriesRes?.data?.categories || [];
+
+	const vendors = vendorsRes?.data?.vendors || [];
+	const meta = vendorsRes?.data?.meta || { total: 0 };
+
+	const totalPages = Math.ceil(meta.total / limit);
 
 	return (
 		<div className="flex min-h-screen flex-col">
@@ -122,10 +67,10 @@ export default function VendorsPage() {
 					{/* Stats */}
 					<div className="mt-20 grid grid-cols-2 gap-8 sm:grid-cols-4 border-t border-white/10 pt-16">
 						{[
-							{ label: "Active Artisans", value: "2,500+" },
-							{ label: "Boutique Items", value: "50,000+" },
+							{ label: "Active Artisans", value: `${meta.total}+` },
+							{ label: "Boutique Items", value: "Live" },
 							{ label: "Average Rating", value: "4.9/5" },
-							{ label: "Global Presence", value: "25+ Countries" }
+							{ label: "Verified Partners", value: "100%" }
 						].map((stat) => (
 							<div key={stat.label} className="text-center group">
 								<div className="text-4xl md:text-5xl font-bold tracking-tighter mb-2 group-hover:text-primary transition-colors">
@@ -152,48 +97,27 @@ export default function VendorsPage() {
 								placeholder="Search boutique names..."
 								className="h-14 pl-12 rounded-2xl border-border/40 bg-zinc-50/50 backdrop-blur-xl focus:ring-primary/10 transition-all font-medium"
 								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
+								onChange={(e) => {
+									setSearchQuery(e.target.value);
+									setPage(1);
+								}}
 							/>
 						</div>
 
 						{/* Filters */}
 						<div className="flex items-center gap-3">
-							<Select defaultValue="all">
-								<SelectTrigger className="w-[160px]">
-									<SelectValue placeholder="Category" />
+							<Select value={selectedCategory} onValueChange={(val) => {
+								setSelectedCategory(val);
+								setPage(1);
+							}}>
+								<SelectTrigger className="h-14 w-[200px] rounded-2xl border-border/40 bg-zinc-50/50 backdrop-blur-xl transition-all focus:ring-primary/10">
+									<SelectValue placeholder="All Categories" />
 								</SelectTrigger>
-								<SelectContent>
+								<SelectContent className="rounded-2xl border-border/40 backdrop-blur-3xl bg-white/80">
 									<SelectItem value="all">All Categories</SelectItem>
-									<SelectItem value="home">Home & Living</SelectItem>
-									<SelectItem value="fashion">Fashion</SelectItem>
-									<SelectItem value="food">Food & Beverages</SelectItem>
-									<SelectItem value="art">Art & Collectibles</SelectItem>
-								</SelectContent>
-							</Select>
-
-							<Select defaultValue="all">
-								<SelectTrigger className="w-[140px]">
-									<SelectValue placeholder="Location" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">All Locations</SelectItem>
-									<SelectItem value="local">Near Me</SelectItem>
-									<SelectItem value="west">West Coast</SelectItem>
-									<SelectItem value="east">East Coast</SelectItem>
-									<SelectItem value="midwest">Midwest</SelectItem>
-									<SelectItem value="south">South</SelectItem>
-								</SelectContent>
-							</Select>
-
-							<Select defaultValue="featured">
-								<SelectTrigger className="w-[140px]">
-									<SelectValue placeholder="Sort by" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="featured">Featured</SelectItem>
-									<SelectItem value="rating">Highest Rated</SelectItem>
-									<SelectItem value="products">Most Products</SelectItem>
-									<SelectItem value="newest">Newest</SelectItem>
+									{categories.map((cat: any) => (
+										<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+									))}
 								</SelectContent>
 							</Select>
 						</div>
@@ -210,47 +134,87 @@ export default function VendorsPage() {
 							<span className="font-medium text-foreground">
 								{vendors.length}
 							</span>{" "}
-							vendors
+							vendors of {meta.total}
 						</p>
-						<Button variant="ghost" size="sm" className="gap-2">
-							<MapPin className="h-4 w-4" />
-							View Map
-						</Button>
 					</div>
 
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{vendors.map((vendor) => (
-							<VendorCard
-								key={vendor.id}
-								id={vendor.id}
-								category={vendor.category}
-								description={vendor.description}
-								rating={vendor.rating}
-								verified={vendor.verified}
-								location={vendor.location}
-								name={vendor.name}
-							/>
-						))}
-					</div>
+					{isLoading ? (
+						<div className="flex flex-col items-center justify-center py-32 space-y-4">
+							<Loader2 className="h-10 w-10 animate-spin text-primary" />
+							<p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Identifying artisans...</p>
+						</div>
+					) : isError ? (
+						<div className="flex flex-col items-center justify-center py-32 text-center">
+							<p className="text-destructive font-bold">Failed to load the artisan directory.</p>
+							<Button variant="link" onClick={() => window.location.reload()}>Try again</Button>
+						</div>
+					) : vendors.length === 0 ? (
+						<div className="flex flex-col items-center justify-center py-32 text-center space-y-4">
+							<div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+								<PackageOpen className="h-8 w-8 text-muted-foreground" />
+							</div>
+							<h2 className="text-xl font-serif italic text-muted-foreground">No artisans found.</h2>
+							<p className="text-sm text-zinc-500 max-w-xs">Try adjusting your search or filters to find a different boutique.</p>
+						</div>
+					) : (
+						<>
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+								{vendors.map((vendor: any) => {
+									const app = vendor.sellerApplication || {};
+									const account = vendor.vendorAccount || {};
+									const profile = vendor.profile || {};
+									const trustScore = account.trustScore ? account.trustScore / 20 : 4.8;
+									return (
+										<VendorCard
+											key={vendor.id}
+											id={vendor.id}
+											name={app.storeName || vendor.name}
+											description={app.storeDescription || "A master artisan curating unique handmade pieces for the Vendora marketplace."}
+											category={app.categories?.[0] || "Featured Artisan"}
+											location={profile.location || "Global"}
+											rating={trustScore}
+											verified={vendor.vendorStatus === "approved"}
+											productCount={account.productCount || 0}
+											followers={account.totalOrders || 120} // Using total orders as a proxy for followers/impact
+											image={profile.profileImage}
+										/>
+									);
+								})}
+							</div>
 
-					{/* Pagination */}
-					<div className="mt-12 flex items-center justify-center gap-2">
-						<Button variant="outline" size="sm" disabled>
-							Previous
-						</Button>
-						<Button variant="default" size="sm">
-							1
-						</Button>
-						<Button variant="outline" size="sm">
-							2
-						</Button>
-						<Button variant="outline" size="sm">
-							3
-						</Button>
-						<Button variant="outline" size="sm">
-							Next
-						</Button>
-					</div>
+							{/* Pagination */}
+							{totalPages > 1 && (
+								<div className="mt-12 flex items-center justify-center gap-2">
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => setPage(page - 1)}
+										disabled={page === 1}
+									>
+										Previous
+									</Button>
+									{[...Array(totalPages)].map((_, i) => (
+										<Button
+											key={i}
+											variant={page === i + 1 ? "default" : "outline"}
+											size="sm"
+											onClick={() => setPage(i + 1)}
+										>
+											{i + 1}
+										</Button>
+									))}
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => setPage(page + 1)}
+										disabled={page === totalPages}
+									>
+										Next
+									</Button>
+								</div>
+							)}
+						</>
+					)}
 				</div>
 			</section>
 

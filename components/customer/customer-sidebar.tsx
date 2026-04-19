@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/stores/auth-store";
+import { useProfile } from "@/hooks/use-user";
 import { clearAuthTokens } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -28,13 +29,16 @@ const navigation = [
 	{ name: "Cart", href: "/buyer/dashboard/cart", icon: ShoppingCart },
 	{ name: "Wishlist", href: "/buyer/dashboard/wishlist", icon: Heart },
 	{ name: "Profile", href: "/buyer/dashboard/profile", icon: User },
-	{ name: "Settings", href: "/buyer/dashboard/settings", icon: Settings },
 ];
 
 export function CustomerSidebar() {
 	const pathname = usePathname();
 	const router = useRouter();
-	const { user, clearAuth } = useAuthStore();
+	const { user: authUser, clearAuth } = useAuthStore();
+	const { data: profileRes } = useProfile();
+
+	// Use profile data if available, fallback to auth store user
+	const user = profileRes?.data?.user || authUser;
 
 	const handleLogout = () => {
 		clearAuth();
@@ -69,7 +73,7 @@ export function CustomerSidebar() {
 					<div className="flex items-center gap-3">
 						<div className="relative">
 							<Avatar className="h-12 w-12 border-2 border-primary/20 group-hover:border-primary/50 transition-colors">
-								<AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} />
+								<AvatarImage src={user?.profile?.profileImage || user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} />
 								<AvatarFallback className="bg-primary/10 text-primary font-bold">
 									{userInitials}
 								</AvatarFallback>

@@ -10,3 +10,11 @@ export const useCreatePaymentIntent = () => {
         },
     });
 };
+export const useVerifyPayment = () => {
+    return useMutation({
+        mutationFn: (orderId: string) => paymentAPI.verify(orderId),
+        onError: (error: any) => {
+            console.error("Verification error:", error);
+        },
+    });
+};

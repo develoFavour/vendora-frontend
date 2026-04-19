@@ -1,12 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { cartAPI } from "@/lib/api";
 import { toast } from "sonner";
+import { useAuthStore } from "@/stores/auth-store";
 
 export const useCart = () => {
+    const { isAuthenticated } = useAuthStore();
     return useQuery({
         queryKey: ["cart"],
         queryFn: cartAPI.get,
         staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+        enabled: isAuthenticated,
     });
 };
 

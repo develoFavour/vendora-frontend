@@ -307,7 +307,7 @@ export function VendorBusinessType() {
 				</FormField>
 			</div>
 
-			<FormField>
+			<FormField label="continue">
 				<Button
 					onClick={handleSubmit}
 					disabled={!canProceed}
@@ -476,18 +476,85 @@ export function VendorBusinessDetails() {
 					/>
 				</FormField>
 
-				<FormField label="Website/Social Media (optional)">
+				<FormField label="Origin/Ships From" required>
 					<Input
-						value={businessDetails.website || ""}
+						value={businessDetails.shipsFrom || ""}
 						onChange={(e) =>
-							handleBusinessDetailChange("website", e.target.value)
+							handleBusinessDetailChange("shipsFrom", e.target.value)
 						}
-						placeholder="https://yourwebsite.com or @yourhandle"
+						placeholder="Where will products be sent from? (e.g. Lagos, Nigeria)"
 					/>
 				</FormField>
+
+				<FormField label="Shipping Policy (optional)">
+					<Textarea
+						value={businessDetails.shippingPolicy || ""}
+						onChange={(e) =>
+							handleBusinessDetailChange("shippingPolicy", e.target.value)
+						}
+						placeholder="How fast do you ship? What carriers do you use?"
+						rows={3}
+					/>
+				</FormField>
+
+				<FormField label="Return Policy (optional)">
+					<Textarea
+						value={businessDetails.returnPolicy || ""}
+						onChange={(e) =>
+							handleBusinessDetailChange("returnPolicy", e.target.value)
+						}
+						placeholder="What are your rules for returns and exchanges?"
+						rows={3}
+					/>
+				</FormField>
+
+				<div className="space-y-4 pt-4 border-t border-terracotta-100">
+					<h3 className="text-sm font-bold uppercase tracking-widest text-[#1A1A1A]">Online Presence</h3>
+					<div className="grid gap-4">
+						<FormField label="Website (optional)">
+							<Input
+								value={businessDetails.website || ""}
+								onChange={(e) =>
+									handleBusinessDetailChange("website", e.target.value)
+								}
+								placeholder="https://yourwebsite.com"
+							/>
+						</FormField>
+						
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+							<FormField label="Instagram">
+								<Input
+									value={businessDetails.instagram || ""}
+									onChange={(e) =>
+										handleBusinessDetailChange("instagram", e.target.value)
+									}
+									placeholder="@handle"
+								/>
+							</FormField>
+							<FormField label="Twitter/X">
+								<Input
+									value={businessDetails.twitter || ""}
+									onChange={(e) =>
+										handleBusinessDetailChange("twitter", e.target.value)
+									}
+									placeholder="@handle"
+								/>
+							</FormField>
+							<FormField label="TikTok">
+								<Input
+									value={businessDetails.tiktok || ""}
+									onChange={(e) =>
+										handleBusinessDetailChange("tiktok", e.target.value)
+									}
+									placeholder="@handle"
+								/>
+							</FormField>
+						</div>
+					</div>
+				</div>
 			</div>
 
-			<FormField>
+			<FormField label="continue">
 				<Button
 					onClick={handleSubmit}
 					disabled={!canProceed}
@@ -507,6 +574,7 @@ export function VendorStoreSetup() {
 
 	const storeSetup = (stepData["store-setup"] as Record<string, string>) || {};
 	const [storeLogoFile, setStoreLogoFile] = React.useState<File | null>(null);
+	const [storeBannerFile, setStoreBannerFile] = React.useState<File | null>(null);
 
 	const handleStoreSetupChange = (key: string, value: string) => {
 		const newSetup = { ...storeSetup, [key]: value };
@@ -538,6 +606,26 @@ export function VendorStoreSetup() {
 		}
 	};
 
+	const handleBannerUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (file) {
+			const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+			if (!allowedTypes.includes(file.type)) {
+				setError("store-setup", "Invalid banner format. Use JPG, PNG, or WebP");
+				return;
+			}
+			if (file.size > 10 * 1024 * 1024) {
+				// 10MB limit for banners
+				setError("store-setup", "Banner size must be less than 10MB");
+				return;
+			}
+
+			setStoreBannerFile(file);
+			handleStoreSetupChange("storeBanner", file.name);
+			clearError("store-setup");
+		}
+	};
+
 	const handleSubmit = async () => {
 		if (!storeSetup.storeName || !storeSetup.storeDescription) {
 			setError("store-setup", "Please fill in all required fields");
@@ -551,7 +639,8 @@ export function VendorStoreSetup() {
 				storeDescription: storeSetup.storeDescription,
 				primaryColor: storeSetup.primaryColor,
 				accentColor: storeSetup.accentColor,
-				storeLogo: storeLogoFile || undefined, // Use the actual File object
+				storeLogo: storeLogoFile || undefined,
+				storeBanner: storeBannerFile || undefined,
 			});
 
 			toast.success("Store details saved");
@@ -601,40 +690,45 @@ export function VendorStoreSetup() {
 					/>
 				</FormField>
 
-				<FormField label="Store Logo (optional)">
-					<div className="flex items-center gap-4">
-						<div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center border-2 border-dashed border-muted-foreground/25">
-							{storeLogoFile ? (
-								<span className="text-2xl">✓</span>
-							) : (
-								<span className="text-2xl">🏪</span>
-							)}
+				<div className="grid md:grid-cols-2 gap-6">
+					<FormField label="Store Logo (optional)">
+						<div className="flex items-center gap-4">
+							<div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center border-2 border-dashed border-muted-foreground/25 overflow-hidden relative group">
+								{storeLogoFile ? (
+									<span className="text-2xl">✓</span>
+								) : (
+									<span className="text-2xl">🏪</span>
+								)}
+								<input
+									type="file"
+									accept="image/*"
+									onChange={handleFileUpload}
+									className="absolute inset-0 opacity-0 cursor-pointer z-10"
+								/>
+							</div>
+							<div>
+								<p className="text-sm font-semibold mb-1">Logo</p>
+								<p className="text-xs text-muted-foreground">Square image, at least 400x400px</p>
+							</div>
 						</div>
-						<div>
+					</FormField>
+
+					<FormField label="Boutique Banner">
+						<div className="w-full aspect-[3/1] rounded-xl bg-muted flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/25 overflow-hidden group relative">
+							{storeBannerFile ? (
+								<p className="text-xs font-bold">Banner Loaded</p>
+							) : (
+								<p className="text-xs font-semibold">Banner Image</p>
+							)}
 							<input
 								type="file"
 								accept="image/*"
-								onChange={handleFileUpload}
-								className="hidden"
-								id="store-logo-upload"
+								onChange={handleBannerUpload}
+								className="absolute inset-0 opacity-0 cursor-pointer z-10"
 							/>
-							<Button
-								variant="outline"
-								className="mb-2"
-								onClick={() =>
-									document.getElementById("store-logo-upload")?.click()
-								}
-							>
-								{storeLogoFile ? "Change Logo" : "Upload Logo"}
-							</Button>
-							<p className="text-xs text-muted-foreground">
-								{storeLogoFile
-									? storeLogoFile.name
-									: "Square image, at least 400x400px"}
-							</p>
 						</div>
-					</div>
-				</FormField>
+					</FormField>
+				</div>
 
 				<FormField label="Store Colors (optional)">
 					<div className="grid grid-cols-2 gap-4">
@@ -646,11 +740,10 @@ export function VendorStoreSetup() {
 								{["#8FBC8F", "#E2725B", "#4A90E2", "#F5A623"].map((color) => (
 									<button
 										key={color}
-										className={`w-8 h-8 rounded-full border-2 ${
-											storeSetup.primaryColor === color
-												? "border-foreground"
-												: "border-muted"
-										}`}
+										className={`w-8 h-8 rounded-full border-2 ${storeSetup.primaryColor === color
+											? "border-foreground"
+											: "border-muted"
+											}`}
 										style={{ backgroundColor: color }}
 										onClick={() =>
 											handleStoreSetupChange("primaryColor", color)
@@ -667,11 +760,10 @@ export function VendorStoreSetup() {
 								{["#E2725B", "#8FBC8F", "#F5A623", "#4A90E2"].map((color) => (
 									<button
 										key={color}
-										className={`w-8 h-8 rounded-full border-2 ${
-											storeSetup.accentColor === color
-												? "border-foreground"
-												: "border-muted"
-										}`}
+										className={`w-8 h-8 rounded-full border-2 ${storeSetup.accentColor === color
+											? "border-foreground"
+											: "border-muted"
+											}`}
 										style={{ backgroundColor: color }}
 										onClick={() => handleStoreSetupChange("accentColor", color)}
 									/>
@@ -682,7 +774,7 @@ export function VendorStoreSetup() {
 				</FormField>
 			</div>
 
-			<FormField>
+			<FormField label="continue">
 				<Button
 					onClick={handleSubmit}
 					disabled={!canProceed}
@@ -708,6 +800,7 @@ export function VendorVerification() {
 	} = useOnboardingStore();
 	const [idDocument, setIdDocument] = React.useState<File | null>(null);
 	const [termsAccepted, setTermsAccepted] = React.useState(false);
+	const [aiStatus, setAiStatus] = React.useState<string>("");
 
 	const handleIdUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
@@ -756,24 +849,48 @@ export function VendorVerification() {
 		}
 
 		setLoading(true);
+		setAiStatus("Uploading documents securely...");
+
 		try {
+			// Simulate AI progress steps while request is inflight
+			const statusInterval = setInterval(() => {
+				setAiStatus((prev) => {
+					if (prev === "Uploading documents securely...") return "🤖 AI scanning Identity Document...";
+					if (prev === "🤖 AI scanning Identity Document...") return "👤 Matching face to profile...";
+					if (prev === "👤 Matching face to profile...") return "✨ Finalizing verification...";
+					return prev;
+				});
+			}, 2500);
+
 			const response = await sellerOnboardingAPI.submitVerification({
 				idDocument,
 				selfieVerification: selfieFile || undefined,
 			});
 
-			const { status, decision } = response.data;
+			clearInterval(statusInterval);
+			setAiStatus("");
+
+			const { status, decision, flags } = response.data;
 
 			if (status === "approved" || decision === "AUTO_APPROVE") {
-				toast.success("Congratulations! Your account has been auto-approved.");
+				toast.success("Identity Verified! Your account is active.", {
+					description: "The AI successfully matched your documents.",
+					duration: 6000,
+				});
 			} else if (status === "pending") {
 				toast.info(
-					"Application submitted. Our team will review your documents shortly."
+					"Manual Review Required", {
+					description: flags?.length > 0 ? flags[0] : "Our team will review your documents shortly.",
+					duration: 6000,
+				}
 				);
 			} else if (status === "rejected") {
 				toast.error(
 					response.data.message ||
-						"Application rejected due to high risk profile."
+					"Verification Failed", {
+					description: flags?.length > 0 ? flags[0] : "Please check your documents and try again.",
+					duration: 6000,
+				}
 				);
 				return;
 			}
@@ -928,20 +1045,36 @@ export function VendorVerification() {
 				</div>
 			</div>
 
-			<Button
-				onClick={handleVerificationSubmit}
-				disabled={!canProceed || isLoading}
-				className="w-full bg-black hover:bg-black/90 h-12 text-lg text-white font-medium shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-			>
-				{isLoading ? (
-					<div className="flex items-center gap-2">
-						<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-						Processing Verification...
+			<div className="relative">
+				{isLoading && (
+					<div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-lg border">
+						<div className="w-12 h-12 relative mb-4">
+							<div className="absolute inset-0 border-4 border-terracotta-200 rounded-full"></div>
+							<div className="absolute inset-0 border-4 border-terracotta-600 rounded-full border-t-transparent animate-spin"></div>
+							<div className="absolute inset-0 flex items-center justify-center animate-pulse">
+								🤖
+							</div>
+						</div>
+						<p className="font-medium text-lg text-foreground animate-pulse">
+							{aiStatus || "Processing..."}
+						</p>
+						<p className="text-sm text-muted-foreground mt-1">
+							Please don&apos;t close this window
+						</p>
 					</div>
-				) : (
-					"Complete Setup"
 				)}
-			</Button>
+
+				<Button
+					onClick={handleVerificationSubmit}
+					disabled={!canProceed || isLoading}
+					className={`w-full h-14 text-white font-medium shadow-lg transition-all ${isLoading
+						? "bg-zinc-800"
+						: "bg-gradient-to-r from-zinc-900 to-black hover:from-black hover:to-zinc-900 hover:shadow-xl hover:-translate-y-0.5"
+						}`}
+				>
+					{isLoading ? "Verifying..." : "Complete Setup & Verify"}
+				</Button>
+			</div>
 
 			{errors["verification"] && (
 				<p className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg border border-destructive/20 text-center animate-in fade-in slide-in-from-top-1">

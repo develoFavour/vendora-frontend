@@ -1,12 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { wishlistAPI } from "@/lib/api";
 import { toast } from "sonner";
+import { useAuthStore } from "@/stores/auth-store";
 
 export const useWishlist = () => {
+    const { isAuthenticated } = useAuthStore();
     return useQuery({
         queryKey: ["wishlist"],
         queryFn: wishlistAPI.get,
         staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+        enabled: isAuthenticated,
     });
 };
 

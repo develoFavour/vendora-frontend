@@ -12,8 +12,25 @@ import {
 	Loader2,
 	DollarSign,
 	ShoppingBag,
-	Package
+	Package,
+	ChevronDown
 } from "lucide-react";
+import { 
+	BarChart, 
+	Bar, 
+	XAxis, 
+	YAxis, 
+	CartesianGrid, 
+	Tooltip, 
+	ResponsiveContainer,
+	Cell
+} from "recharts";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +39,8 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export default function VendorAnalyticsPage() {
+    const [dateRange, setDateRange] = React.useState("7days");
+
 	const { data: statsRes, isLoading } = useVendorStats();
 	const stats = statsRes?.data?.stats;
 
@@ -33,12 +52,35 @@ export default function VendorAnalyticsPage() {
 		);
 	}
 
-	// Sort performance data by date
-	const performance = [...(stats?.salesPerformance || [])].sort((a, b) =>
-		new Date(a.date).getTime() - new Date(b.date).getTime()
-	);
+	// Calculate the filter cutoff date
+	const getCutoffDate = () => {
+		const now = new Date();
+		switch (dateRange) {
+			case "7days":
+				return new Date(now.setDate(now.getDate() - 7));
+			case "30days":
+				return new Date(now.setDate(now.getDate() - 30));
+			case "thisYear":
+				return new Date(now.getFullYear(), 0, 1); // Jan 1st of current year
+			default:
+				return new Date(0); // All time
+		}
+	};
+	const cutoff = getCutoffDate();
+
+	// Sort and filter performance data by date
+	const performance = [...(stats?.salesPerformance || [])]
+		.filter(p => new Date(p.date).getTime() >= cutoff.getTime())
+		.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
 	const maxRevenue = Math.max(...performance.map(p => p.revenue), 1);
+
+    const rangeLabels: Record<string, string> = {
+        "7days": "Last 7 Days",
+        "30days": "Last 30 Days",
+        "thisYear": "This Year",
+        "allTime": "All Time"
+    };
 
 	return (
 		<div className="p-8 max-w-[1600px] mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -54,11 +96,22 @@ export default function VendorAnalyticsPage() {
 					<p className="text-zinc-500 font-medium italic">Monitor market trends and track acquisition growth cycles.</p>
 				</div>
 
-				<div className="flex items-center gap-3">
-					<Button variant="outline" className="h-12 border-border bg-card rounded-xl px-6 text-[10px] uppercase font-bold tracking-widest text-zinc-500 hover:bg-muted transition-all">
-						<Calendar className="mr-2 h-4 w-4" />
-						Last 30 Days
-					</Button>
+				<div className="flex items-center gap-3 relative z-50">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="h-12 border-border bg-card rounded-xl px-6 text-[10px] uppercase font-bold tracking-widest text-zinc-500 hover:bg-muted transition-all">
+                                <Calendar className="mr-2 h-4 w-4" />
+                                {rangeLabels[dateRange]}
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 bg-white border-zinc-100 shadow-2xl rounded-xl p-2 z-50">
+                            <DropdownMenuItem onClick={() => setDateRange("7days")} className="text-xs font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 cursor-pointer rounded-lg py-3 px-4 transition-colors">Last 7 Days</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setDateRange("30days")} className="text-xs font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 cursor-pointer rounded-lg py-3 px-4 transition-colors">Last 30 Days</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setDateRange("thisYear")} className="text-xs font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 cursor-pointer rounded-lg py-3 px-4 transition-colors">This Year</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setDateRange("allTime")} className="text-xs font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 cursor-pointer rounded-lg py-3 px-4 transition-colors">All Time</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 					<Button className="h-12 bg-zinc-900 text-white rounded-xl px-6 text-[10px] uppercase font-bold tracking-widest hover:bg-zinc-800 transition-all shadow-xl">
 						<Download className="mr-2 h-4 w-4" />
 						Export Ledger
@@ -70,7 +123,7 @@ export default function VendorAnalyticsPage() {
 			<Card className="bg-white border-border overflow-hidden rounded-[2.5rem] shadow-2xl shadow-zinc-200/50">
 				<div className="p-10 border-b border-zinc-50 bg-zinc-50/30 flex items-center justify-between">
 					<div>
-						<h2 className="text-xl font-bold text-zinc-900 tracking-tight">Revenue Trajectory</h2>
+						<h2 className="text-xl font-bold text-zinc-900 tracking-tight">Revenue Chart</h2>
 						<p className="text-xs text-zinc-500 font-medium mt-1 uppercase tracking-widest">Daily earnings across the acquisition cycle</p>
 					</div>
 					<div className="flex items-center gap-8">
@@ -81,49 +134,56 @@ export default function VendorAnalyticsPage() {
 					</div>
 				</div>
 
-				<div className="p-10">
-					<div className="h-[400px] w-full flex items-end gap-2 md:gap-4 relative">
-						{/* Grid Lines */}
-						<div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-[0.03]">
-							{[...Array(5)].map((_, i) => (
-								<div key={i} className="w-full h-px bg-zinc-900" />
-							))}
+				<div className="p-10 h-[450px]">
+					{performance.length === 0 ? (
+						<div className="w-full h-full flex items-center justify-center text-zinc-300 italic font-serif">
+							Insufficient data for trajectory mapping...
 						</div>
-
-						{performance.length === 0 ? (
-							<div className="w-full h-full flex items-center justify-center text-zinc-300 italic font-serif">
-								Insufficient data for trajectory mapping...
-							</div>
-						) : (
-							performance.map((day, i) => (
-								<div key={i} className="flex-1 flex flex-col items-center gap-4 group cursor-help">
-									<div className="relative w-full flex flex-col justify-end h-full">
-										{/* Hover Tooltip */}
-										<div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover:opacity-100 transition-all z-20 pointer-events-none">
-											<div className="bg-zinc-900 text-white rounded-xl py-2 px-4 shadow-2xl scale-90 group-hover:scale-100 transition-transform">
-												<p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-1">{new Date(day.date).toLocaleDateString()}</p>
-												<p className="text-sm font-bold">${day.revenue.toLocaleString()}</p>
-											</div>
-											<div className="w-2 h-2 bg-zinc-900 rotate-45 mx-auto -mt-1" />
-										</div>
-
-										<motion.div
-											initial={{ height: 0 }}
-											animate={{ height: `${(day.revenue / maxRevenue) * 100}%` }}
-											transition={{ duration: 1.5, delay: i * 0.05, ease: [0.23, 1, 0.32, 1] }}
-											className={cn(
-												"w-full rounded-t-xl transition-all duration-500",
-												day.revenue === maxRevenue ? "bg-primary" : "bg-zinc-100 group-hover:bg-zinc-200"
-											)}
+					) : (
+						<ResponsiveContainer width="100%" height="100%">
+							<BarChart data={performance} margin={{ top: 20, right: 0, left: 0, bottom: 20 }}>
+								<CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+								<XAxis 
+									dataKey="date" 
+									tickFormatter={(val) => new Date(val).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })}
+									axisLine={false}
+									tickLine={false}
+									tick={{ fontSize: 10, fontWeight: "bold", fill: "#a1a1aa" }}
+									dy={15}
+								/>
+								<Tooltip 
+									cursor={{ fill: "rgba(0,0,0,0.02)" }}
+									content={({ active, payload }) => {
+										if (active && payload && payload.length) {
+											return (
+												<div className="bg-zinc-900 text-white rounded-xl py-3 px-5 shadow-2xl transition-transform border border-zinc-800">
+													<p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
+														{new Date(payload[0].payload.date).toLocaleDateString()}
+													</p>
+													<p className="text-sm font-bold">${payload[0].value?.toLocaleString()}</p>
+													<p className="text-[10px] font-medium text-zinc-500 mt-1">{payload[0].payload.orders} Orders</p>
+												</div>
+											);
+										}
+										return null;
+									}}
+								/>
+								<Bar 
+									dataKey="revenue" 
+									radius={[6, 6, 6, 6]}
+									maxBarSize={60}
+								>
+									{performance.map((entry, index) => (
+										<Cell 
+											key={`cell-${index}`} 
+											fill={entry.revenue === maxRevenue ? "rgba(13, 148, 136, 1)" : "rgba(244, 244, 245, 1)"} 
+											className="transition-colors hover:fill-teal-600/50 cursor-crosshair"
 										/>
-									</div>
-									<span className="text-[8px] font-bold text-zinc-400 uppercase tracking-tighter hidden md:block">
-										{new Date(day.date).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })}
-									</span>
-								</div>
-							))
-						)}
-					</div>
+									))}
+								</Bar>
+							</BarChart>
+						</ResponsiveContainer>
+					)}
 				</div>
 			</Card>
 

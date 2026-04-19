@@ -23,103 +23,83 @@ import {
 	ChevronLeft,
 	Plus,
 	Minus,
+	Loader2,
 } from "lucide-react";
 import Image from "next/image";
+import { useParams } from "next/navigation";
+import { formatDistanceToNow } from "date-fns";
+import { useAuthStore } from "@/stores/auth-store";
+import { useAddToCart } from "@/hooks/use-cart";
+import { useGuestCartStore } from "@/stores/guest-cart-store";
+import { toast } from "sonner";
+import { usePublicCategories, usePublicProductById, useSimilarProducts, useProductReviews } from "@/hooks/use-public-products";
 
 export default function ProductDetailPage() {
+	const params = useParams();
+	const id = params.id as string;
+	const { data: product, isLoading: productLoading, isError: productError } = usePublicProductById(id);
+	const { data: similarRes, isLoading: similarLoading } = useSimilarProducts(id);
+	const { data: reviewRes, isLoading: reviewsLoading } = useProductReviews(id);
+
+	const relatedProducts = similarRes?.data?.products || [];
+	const productReviews = reviewRes?.data?.reviews || [];
+
 	const [quantity, setQuantity] = useState(1);
 	const [selectedImage, setSelectedImage] = useState(0);
 
-	const product = {
-		id: "1",
-		name: "Handcrafted Ceramic Vase",
-		price: 89.99,
-		description:
-			"This beautiful ceramic vase is handcrafted with care by skilled artisans. Each piece is unique, featuring subtle variations in glaze and form that make it truly one-of-a-kind. Perfect for displaying fresh flowers or as a standalone decorative piece.",
-		images: [
-			"/handcrafted-ceramic-vase-pottery.jpg",
-			"/ceramic-vase-detail-texture.jpg",
-			"/ceramic-vase-side-view.jpg",
-			"/ceramic-vase-top-view.jpg",
-		],
-		vendor: {
-			id: "1",
-			name: "Artisan Pottery Co.",
-			location: "Portland, OR",
-			rating: 4.9,
-			totalSales: 1240,
-			verified: true,
-			image: "/pottery-studio-artisan-workspace.jpg",
-		},
-		rating: 4.8,
-		reviews: 124,
-		stock: 12,
-		category: "Home & Living",
-		sku: "APC-VAR-001",
-		dimensions: '8" H x 5" W',
-		weight: "2.5 lbs",
-		materials: "Stoneware clay, food-safe glaze",
+	const { data: categoriesRes } = usePublicCategories();
+	const categories = categoriesRes?.data?.categories || [];
+
+	// Cart Hooks
+	const { isAuthenticated } = useAuthStore();
+	const addToCart = useAddToCart();
+	const guestCart = useGuestCartStore();
+
+	if (productLoading) {
+		return (
+			<div className="flex min-h-screen flex-col items-center justify-center space-y-4">
+				<Loader2 className="h-12 w-12 animate-spin text-primary" />
+				<p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Curating specifications...</p>
+			</div>
+		);
+	}
+
+	if (productError || !product) {
+		return (
+			<div className="flex min-h-screen flex-col items-center justify-center space-y-4">
+				<Loader2 className="h-12 w-12 text-destructive" />
+				<p className="text-destructive font-bold">Failed to load product details.</p>
+				<Button variant="link" asChild><Link href="/marketplace">Back to Marketplace</Link></Button>
+			</div>
+		);
+	}
+
+	const categoryName = categories.find((c: any) => c.id === product.categoryId)?.name || "The Collection";
+
+	const handleAddToCart = () => {
+		if (isAuthenticated) {
+			addToCart.mutate({
+				productId: product.id,
+				quantity,
+				price: product.price,
+				name: product.name
+			});
+		} else {
+			guestCart.addItem({
+				productId: product.id,
+				name: product.name,
+				price: product.price,
+				quantity,
+				image: product.images?.[0] || "/placeholder.svg",
+				vendor: product.vendorName || "Artisan"
+			});
+			toast.success("Added to bag — sign in to checkout!");
+		}
 	};
 
-	const reviews = [
-		{
-			id: "1",
-			author: "Sarah M.",
-			rating: 5,
-			date: "2 weeks ago",
-			comment:
-				"Absolutely stunning! The craftsmanship is incredible and it looks even better in person. Perfect addition to my living room.",
-			verified: true,
-		},
-		{
-			id: "2",
-			author: "Michael R.",
-			rating: 5,
-			date: "1 month ago",
-			comment:
-				"Beautiful piece. The glaze has such depth and the shape is elegant. Shipping was fast and packaging was excellent.",
-			verified: true,
-		},
-		{
-			id: "3",
-			author: "Emma L.",
-			rating: 4,
-			date: "1 month ago",
-			comment:
-				"Love the vase! Only giving 4 stars because it's slightly smaller than I expected, but still gorgeous.",
-			verified: true,
-		},
-	];
 
-	const relatedProducts = [
-		{
-			id: "2",
-			name: "Ceramic Bowl Set",
-			price: 65.0,
-			image: "/ceramic-bowl-set-handmade.jpg",
-			vendor: "Artisan Pottery Co.",
-			rating: 4.9,
-			reviews: 89,
-		},
-		{
-			id: "3",
-			name: "Stoneware Planter",
-			price: 45.0,
-			image: "/stoneware-planter-ceramic.jpg",
-			vendor: "Artisan Pottery Co.",
-			rating: 4.7,
-			reviews: 56,
-		},
-		{
-			id: "4",
-			name: "Decorative Plate",
-			price: 38.0,
-			image: "/decorative-plate-ceramic-art.jpg",
-			vendor: "Artisan Pottery Co.",
-			rating: 5.0,
-			reviews: 72,
-		},
-	];
+
+
 
 	return (
 		<div className="flex min-h-screen flex-col">
@@ -138,10 +118,10 @@ export default function ProductDetailPage() {
 						</Link>
 						<span>/</span>
 						<Link
-							href={`/marketplace?category=${product.category}`}
+							href={`/marketplace?category=${product.categoryId}`}
 							className="hover:text-foreground"
 						>
-							{product.category}
+							{categoryName}
 						</Link>
 						<span>/</span>
 						<span className="text-foreground">{product.name}</span>
@@ -160,37 +140,38 @@ export default function ProductDetailPage() {
 					</Button>
 
 					<div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-						{/* Images */}
 						<div className="space-y-4">
 							<div className="aspect-square overflow-hidden rounded-lg border border-border bg-muted">
 								<Image
-									height={100}
-									width={100}
-									src={product.images[selectedImage] || "/placeholder.svg"}
+									height={800}
+									width={800}
+									src={product.images?.[selectedImage] || "/placeholder.svg"}
 									alt={product.name}
-									className="h-full w-full object-cover"
+									className="h-full w-full object-cover transition-all duration-500"
 								/>
 							</div>
-							<div className="grid grid-cols-4 gap-4">
-								{product.images.map((image, index) => (
-									<button
-										key={index}
-										onClick={() => setSelectedImage(index)}
-										className={`aspect-square overflow-hidden rounded-lg border-2 ${selectedImage === index
+							{product.images?.length > 1 && (
+								<div className="grid grid-cols-4 gap-4">
+									{product.images.map((image, index) => (
+										<button
+											key={index}
+											onClick={() => setSelectedImage(index)}
+											className={`aspect-square overflow-hidden rounded-lg border-2 transition-all ${selectedImage === index
 												? "border-primary"
-												: "border-border"
-											}`}
-									>
-										<Image
-											height={100}
-											width={100}
-											src={image || "/placeholder.svg"}
-											alt={`${product.name} ${index + 1}`}
-											className="h-full w-full object-cover"
-										/>
-									</button>
-								))}
-							</div>
+												: "border-border hover:border-primary/50"
+												}`}
+										>
+											<Image
+												height={200}
+												width={200}
+												src={image || "/placeholder.svg"}
+												alt={`${product.name} ${index + 1}`}
+												className="h-full w-full object-cover"
+											/>
+										</button>
+									))}
+								</div>
+							)}
 						</div>
 
 						{/* Product Info */}
@@ -198,9 +179,9 @@ export default function ProductDetailPage() {
 							<div>
 								<div className="mb-4 flex items-center gap-3">
 									<Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors py-1 px-4 text-[10px] font-bold uppercase tracking-widest">
-										{product.category}
+										{categoryName}
 									</Badge>
-									{product.stock < 15 && (
+									{product.stock && product.stock < 15 && product.stock > 0 && (
 										<Badge
 											variant="outline"
 											className="border-amber-500/30 bg-amber-500/5 text-amber-600 py-1 px-4 text-[10px] font-bold uppercase tracking-widest animate-pulse"
@@ -215,10 +196,10 @@ export default function ProductDetailPage() {
 								<div className="mt-4 flex items-center gap-6">
 									<div className="flex items-center gap-1.5 bg-zinc-50 px-3 py-1.5 rounded-full border border-zinc-100 shadow-sm">
 										<Star className="h-4 w-4 fill-primary text-primary" />
-										<span className="text-sm font-bold tracking-tight">{product.rating}</span>
+										<span className="text-sm font-bold tracking-tight">{product.rating || "4.5"}</span>
 									</div>
 									<span className="text-sm text-zinc-400 font-medium tracking-wide">
-										{product.reviews} Artisan Reviews
+										{product.reviewCount || "0"} Artisan Reviews
 									</span>
 								</div>
 							</div>
@@ -239,42 +220,36 @@ export default function ProductDetailPage() {
 								<div className="flex items-start justify-between">
 									<div className="flex gap-3">
 										<div className="h-12 w-12 overflow-hidden rounded-full bg-muted">
-											<Image
-												height={100}
-												width={100}
-												src={product.vendor.image || "/placeholder.svg"}
-												alt={product.vendor.name}
-												className="h-full w-full object-cover"
-											/>
+											<div className="h-full w-full bg-primary/10 flex items-center justify-center font-bold text-primary">
+												{product.vendorName?.[0] || "V"}
+											</div>
 										</div>
 										<div>
 											<div className="flex items-center gap-2">
 												<Link
-													href={`/vendors/${product.vendor.id}`}
+													href={`/vendors/${product.vendorId}`}
 													className="font-semibold hover:underline"
 												>
-													{product.vendor.name}
+													{product.vendorName || "Artisan"}
 												</Link>
-												{product.vendor.verified && (
-													<Badge variant="secondary" className="text-xs">
-														Verified
-													</Badge>
-												)}
+												<Badge variant="secondary" className="text-[9px] font-bold uppercase py-0 px-2 tracking-widest opacity-70">
+													Verified
+												</Badge>
 											</div>
 											<div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
 												<div className="flex items-center gap-1">
 													<MapPin className="h-3 w-3" />
-													{product.vendor.location}
+													{product.vendorLocation || "The World"}
 												</div>
 												<div className="flex items-center gap-1">
 													<Star className="h-3 w-3 fill-primary text-primary" />
-													{product.vendor.rating}
+													4.9
 												</div>
 											</div>
 										</div>
 									</div>
-									<Button variant="outline" size="sm" asChild>
-										<Link href={`/vendors/${product.vendor.id}`}>
+									<Button variant="outline" size="sm" asChild className="rounded-xl">
+										<Link href={`/vendors/${product.vendorId}`}>
 											<Store className="mr-2 h-4 w-4" />
 											Visit Store
 										</Link>
@@ -312,15 +287,17 @@ export default function ProductDetailPage() {
 								</div>
 
 								<div className="flex gap-3">
-									<Button size="lg" className="flex-1">
-										<ShoppingCart className="mr-2 h-5 w-5" />
-										Add to Cart
+									<Button
+										size="lg"
+										className="flex-1 rounded-2xl h-14 font-bold tracking-widest uppercase text-xs shadow-xl shadow-primary/20"
+										onClick={handleAddToCart}
+										disabled={addToCart.isPending || product.stock === 0}
+									>
+										{addToCart.isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ShoppingCart className="mr-2 h-5 w-5" />}
+										{product.stock === 0 ? "Out of Stock" : "Add to Cart"}
 									</Button>
-									<Button size="lg" variant="outline">
+									<Button size="lg" variant="outline" className="h-14 w-14 rounded-2xl border-border/40 bg-zinc-50/50">
 										<Heart className="h-5 w-5" />
-									</Button>
-									<Button size="lg" variant="outline">
-										<Share2 className="h-5 w-5" />
 									</Button>
 								</div>
 							</div>
@@ -374,24 +351,26 @@ export default function ProductDetailPage() {
 										</h3>
 										<dl className="space-y-3">
 											<div className="flex justify-between">
-												<dt className="text-muted-foreground">Dimensions</dt>
-												<dd className="font-medium">{product.dimensions}</dd>
+												<dt className="text-muted-foreground">Dimensions (H x W x L)</dt>
+												<dd className="font-medium">
+													{product.dimensions?.height || 0} x {product.dimensions?.width || 0} x {product.dimensions?.length || 0} cm
+												</dd>
 											</div>
 											<div className="flex justify-between">
 												<dt className="text-muted-foreground">Weight</dt>
-												<dd className="font-medium">{product.weight}</dd>
+												<dd className="font-medium">{product.dimensions?.weight || 0} kg</dd>
 											</div>
 											<div className="flex justify-between">
 												<dt className="text-muted-foreground">Materials</dt>
-												<dd className="font-medium">{product.materials}</dd>
+												<dd className="font-medium">{product.brand || "Artisan Grade"}</dd>
 											</div>
 											<div className="flex justify-between">
 												<dt className="text-muted-foreground">Category</dt>
-												<dd className="font-medium">{product.category}</dd>
+												<dd className="font-medium">{categoryName}</dd>
 											</div>
 										</dl>
 									</div>
-									<div>
+									{/* <div>
 										<h3 className="mb-4 text-lg font-semibold">
 											Care Instructions
 										</h3>
@@ -402,102 +381,90 @@ export default function ProductDetailPage() {
 											<li>• Handle with care to prevent chipping</li>
 											<li>• Wipe dry after washing</li>
 										</ul>
-									</div>
+									</div> */}
 								</div>
 							</TabsContent>
-
 							<TabsContent value="reviews" className="mt-8">
-								<div className="space-y-6">
-									{/* Review Summary */}
-									<Card className="p-6">
-										<div className="flex items-start gap-8">
-											<div className="text-center">
-												<div className="text-5xl font-bold">
-													{product.rating}
-												</div>
-												<div className="mt-2 flex items-center justify-center gap-1">
-													{Array.from({ length: 5 }).map((_, i) => (
+								<div className="grid gap-12 lg:grid-cols-3">
+									<div className="lg:col-span-1">
+										<h2 className="text-3xl font-bold tracking-tight mb-4">Artisan Reviews</h2>
+										<div className="flex items-center gap-4 mb-6">
+											<div className="text-5xl font-bold">{product.rating || "0.0"}</div>
+											<div>
+												<div className="flex mb-1">
+													{[...Array(5)].map((_, i) => (
 														<Star
 															key={i}
-															className={`h-4 w-4 ${i < Math.floor(product.rating)
-																	? "fill-primary text-primary"
-																	: "fill-muted text-muted-foreground"
+															className={`h-4 w-4 ${i < Math.floor(product.rating || 0)
+																? "fill-primary text-primary"
+																: "fill-muted text-muted-foreground"
 																}`}
 														/>
 													))}
 												</div>
-												<div className="mt-1 text-sm text-muted-foreground">
-													{product.reviews} reviews
-												</div>
-											</div>
-											<div className="flex-1 space-y-2">
-												{[5, 4, 3, 2, 1].map((stars) => (
-													<div key={stars} className="flex items-center gap-3">
-														<span className="w-12 text-sm text-muted-foreground">
-															{stars} star
-														</span>
-														<div className="h-2 flex-1 rounded-full bg-muted">
-															<div
-																className="h-full rounded-full bg-primary"
-																style={{
-																	width: `${stars === 5 ? 75 : stars === 4 ? 20 : 5
-																		}%`,
-																}}
-															/>
-														</div>
-														<span className="w-12 text-right text-sm text-muted-foreground">
-															{stars === 5 ? 93 : stars === 4 ? 25 : 6}
-														</span>
-													</div>
-												))}
+												<p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">
+													Based on {product.reviewCount || 0} reviews
+												</p>
 											</div>
 										</div>
-									</Card>
-
-									{/* Individual Reviews */}
-									<div className="space-y-6">
-										{reviews.map((review) => (
-											<Card key={review.id} className="p-6">
-												<div className="flex items-start justify-between">
-													<div>
-														<div className="flex items-center gap-2">
-															<span className="font-semibold">
-																{review.author}
-															</span>
-															{review.verified && (
-																<Badge variant="secondary" className="text-xs">
-																	Verified Purchase
-																</Badge>
-															)}
-														</div>
-														<div className="mt-1 flex items-center gap-2">
-															<div className="flex items-center gap-1">
-																{Array.from({ length: 5 }).map((_, i) => (
-																	<Star
-																		key={i}
-																		className={`h-4 w-4 ${i < review.rating
-																				? "fill-primary text-primary"
-																				: "fill-muted text-muted-foreground"
-																			}`}
-																	/>
-																))}
-															</div>
-															<span className="text-sm text-muted-foreground">
-																{review.date}
-															</span>
-														</div>
-													</div>
-												</div>
-												<p className="mt-4 text-muted-foreground leading-relaxed">
-													{review.comment}
-												</p>
-											</Card>
-										))}
+										<Button className="w-full rounded-2xl h-12 font-bold tracking-widest uppercase text-xs">Share Your Experience</Button>
 									</div>
 
-									<Button variant="outline" className="w-full bg-transparent">
-										Load More Reviews
-									</Button>
+									<div className="lg:col-span-2">
+										<div className="space-y-10">
+											{productReviews.length > 0 ? (
+												productReviews.map((review: any) => (
+													<div
+														key={review.id}
+														className="border-b border-border pb-10 last:border-0"
+													>
+														<div className="flex items-center justify-between mb-4">
+															<div className="flex items-center gap-3">
+																<div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-xs uppercase">
+																	{review.userName?.[0] || "U"}
+																</div>
+																<div>
+																	<h4 className="font-bold text-sm tracking-tight text-black">
+																		{review.userName}
+																	</h4>
+																	<div className="flex mt-0.5">
+																		{[...Array(5)].map((_, i) => (
+																			<Star
+																				key={i}
+																				className={`h-3 w-3 ${i < review.rating
+																					? "fill-primary text-primary"
+																					: "fill-muted text-muted-foreground"
+																					}`}
+																			/>
+																		))}
+																	</div>
+																</div>
+															</div>
+															<span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+																{formatDistanceToNow(new Date(review.createdAt))} ago
+															</span>
+														</div>
+														<p className="text-zinc-400 leading-relaxed italic font-medium">
+															&quot;{review.comment}&quot;
+														</p>
+														{review.response && (
+															<div className="mt-6 ml-6 p-4 rounded-2xl bg-zinc-800/30 border-l-2 border-primary/40">
+																<div className="flex items-center gap-2 mb-2">
+																	<Store className="h-3 w-3 text-primary" />
+																	<span className="text-[10px] font-bold uppercase tracking-widest text-primary">Artisan Response</span>
+																</div>
+																<p className="text-sm text-zinc-500 italic">&quot;{review.response}&quot;</p>
+															</div>
+														)}
+													</div>
+												))
+											) : (
+												<div className="py-20 text-center bg-muted/20 rounded-3xl border border-dashed border-border">
+													<p className="text-muted-foreground font-medium italic">No artisan reviews yet for this masterpiece.</p>
+												</div>
+											)}
+										</div>
+									</div>
 								</div>
 							</TabsContent>
 
@@ -545,11 +512,11 @@ export default function ProductDetailPage() {
 													To initiate a return:
 												</strong>
 											</p>
-											<ul className="space-y-2">
-												<li>• Contact the vendor through your order page</li>
-												<li>• Receive return authorization and instructions</li>
-												<li>• Ship the item back with tracking</li>
-												<li>• Refund processed within 5-7 business days</li>
+											<ul className="space-y-2 text-sm">
+												<li className="flex gap-2"><span>-</span> <span>Contact the vendor through your order page</span></li>
+												<li className="flex gap-2"><span>-</span> <span>Receive return authorization and instructions</span></li>
+												<li className="flex gap-2"><span>-</span> <span>Ship the item back with tracking</span></li>
+												<li className="flex gap-2"><span>-</span> <span>Refund processed within 5-7 business days</span></li>
 											</ul>
 										</div>
 									</div>
@@ -565,25 +532,31 @@ export default function ProductDetailPage() {
 									Boutique Curation
 								</Badge>
 								<h2 className="text-4xl md:text-5xl lg:text-6xl tracking-tighter">
-									More from <span className="italic text-primary">{product.vendor.name}</span>
+									More from <span className="italic text-primary">{product.vendorName || "Artisan"}</span>
 								</h2>
 							</div>
 							<Button variant="ghost" className="hidden md:flex font-bold tracking-widest text-xs uppercase text-zinc-400 hover:text-primary transition-colors" asChild>
-								<Link href={`/vendors/${product.vendor.id}`}>View Full Gallery</Link>
+								<Link href={`/vendors/${product.vendorId}`}>View Full Gallery</Link>
 							</Button>
 						</div>
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-							{relatedProducts.map((relatedProduct) => (
-								<ProductCard
-									key={relatedProduct.id}
-									id={relatedProduct.id}
-									name={relatedProduct.name}
-									image={relatedProduct.image}
-									price={relatedProduct.price.toString()}
-									vendor={relatedProduct.vendor}
-								/>
-							))}
-						</div>
+						{relatedProducts.length > 0 ? (
+							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+								{relatedProducts.map((relatedProduct) => (
+									<ProductCard
+										key={relatedProduct.id}
+										id={relatedProduct.id}
+										name={relatedProduct.name}
+										image={relatedProduct.images?.[0] || "/placeholder.svg"}
+										price={relatedProduct.price.toString()}
+										vendor={product.vendorName || "Artisan"}
+									/>
+								))}
+							</div>
+						) : (
+							<div className="py-20 text-center bg-muted/10 rounded-3xl border border-dashed border-border/40">
+								<p className="text-muted-foreground font-medium italic">No similar pieces found in this curation.</p>
+							</div>
+						)}
 					</div>
 				</div>
 			</section>

@@ -48,7 +48,7 @@ export function VendorCard({
 				<div className="h-24 bg-gradient-to-r from-primary/20 via-primary/5 to-accent/20 opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
 
 				<div className="relative -mt-12 px-6 pb-6">
-					<Link href={`/buyer/dashboard/marketplace/vendors/${id}`}>
+					<Link href={`/vendors/${id}`}>
 						<div className="flex flex-col items-center">
 							{/* Logo/Avatar */}
 							<div className="relative">

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, Eye, Package, Clock, Loader2, ShoppingBag, CreditCard, CheckCircle2 } from "lucide-react";
 import { useOrders, useConfirmReceipt } from "@/hooks/use-orders";
+import { useVerifyPayment } from "@/hooks/use-payments";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -15,19 +16,35 @@ import { PaymentSuccessModal } from "@/components/checkout/PaymentSuccessModal";
 export default function CustomerOrdersPage() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
-	const { data: ordersData, isLoading } = useOrders();
+	const { data: ordersData, isLoading, refetch } = useOrders();
+	const verifyMutation = useVerifyPayment();
 	const confirmMutation = useConfirmReceipt();
 	const orders = ordersData?.data?.orders || [];
 
 	const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
 	useEffect(() => {
-		if (searchParams.get("payment_intent_id") === "success") {
+		const success = searchParams.get("payment_intent_id") === "success";
+		const orderId = searchParams.get("orderId");
+
+		if (success) {
 			setIsSuccessModalOpen(true);
+			
+			// If we have an orderId, trigger a manual verification as a fallback
+			// (Useful for local development or slow webhooks)
+			if (orderId) {
+				verifyMutation.mutate(orderId, {
+					onSuccess: () => {
+						// Immediately refetch to update UI status
+						refetch();
+					}
+				});
+			}
+
 			// Clean URL without refresh
 			router.replace("/buyer/dashboard/orders");
 		}
-	}, [searchParams, router]);
+	}, [searchParams, router, refetch]);
 
 	const getStatusColor = (status: string) => {
 		switch (status.toLowerCase()) {

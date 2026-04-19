@@ -14,10 +14,12 @@ const PROTECTED_ROUTES: Record<string, string[]> = {
 const PUBLIC_ROUTES = [
 	"/login",
 	"/signup",
+	"/admin/login",
 	"/verify",
 	"/",
 	"/about",
 	"/marketplace",
+	"/cart",
 	"/forgot-password",
 	"/vendors",
 ];

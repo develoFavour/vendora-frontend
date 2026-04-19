@@ -1,323 +1,190 @@
-import type React from "react";
+"use client";
+
+import React from "react";
 import { Card } from "@/components/ui/card";
-import {
-	DollarSign,
-	Users,
-	Store,
-	ShoppingBag,
-	TrendingUp,
-	ArrowUpRight,
-	AlertCircle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+	DollarSign, Users, Store, ShoppingBag, Zap,
+	ArrowUpRight, AlertTriangle, Loader2, ChevronRight, Clock
+} from "lucide-react";
 import Link from "next/link";
+import { useAdminStats, useTierRequests } from "@/hooks/use-admin";
+import { cn } from "@/lib/utils";
 
 export default function AdminDashboardPage() {
+	const { data: statsRes, isLoading: statsLoading } = useAdminStats();
+	const { data: tierRes, isLoading: tierLoading } = useTierRequests("pending");
+
+	const stats = statsRes?.data;
+	const tierRequests: any[] = tierRes?.data?.requests || [];
+
+	const STAT_CARDS = [
+		{
+			label: "Platform Revenue",
+			value: stats ? `$${Number(stats.totalRevenue).toLocaleString()}` : "—",
+			icon: DollarSign,
+			color: "text-emerald-500",
+			bg: "bg-emerald-500/10",
+		},
+		{
+			label: "Active Vendors",
+			value: stats?.totalVendors?.toLocaleString() ?? "—",
+			icon: Store,
+			color: "text-blue-400",
+			bg: "bg-blue-400/10",
+		},
+		{
+			label: "Total Customers",
+			value: stats?.totalUsers?.toLocaleString() ?? "—",
+			icon: Users,
+			color: "text-violet-400",
+			bg: "bg-violet-400/10",
+		},
+		{
+			label: "Total Orders",
+			value: stats?.totalOrders?.toLocaleString() ?? "—",
+			icon: ShoppingBag,
+			color: "text-amber-400",
+			bg: "bg-amber-400/10",
+		},
+	];
+
 	return (
-		<div className="p-8">
+		<div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
 			{/* Header */}
-			<div className="mb-8">
-				<h1 className="font-serif text-3xl font-bold">Platform Overview</h1>
-				<p className="mt-2 text-muted-foreground">
-					Monitor and manage the entire Vendora marketplace
-				</p>
-			</div>
-
-			{/* Key Metrics */}
-			<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-				<Card className="p-6">
-					<div className="flex items-center justify-between">
-						<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-							<DollarSign className="h-6 w-6 text-primary" />
-						</div>
-						<div className="flex items-center gap-1 text-sm font-medium text-green-600">
-							<ArrowUpRight className="h-4 w-4" />
-							18.2%
-						</div>
-					</div>
-					<div className="mt-4">
-						<div className="text-2xl font-bold">$284,562</div>
-						<div className="text-sm text-muted-foreground">
-							Platform Revenue
-						</div>
-					</div>
-					<div className="mt-2 text-xs text-muted-foreground">
-						+$42,180 from last month
-					</div>
-				</Card>
-
-				<Card className="p-6">
-					<div className="flex items-center justify-between">
-						<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10">
-							<Store className="h-6 w-6 text-accent" />
-						</div>
-						<div className="flex items-center gap-1 text-sm font-medium text-green-600">
-							<ArrowUpRight className="h-4 w-4" />
-							12.5%
-						</div>
-					</div>
-					<div className="mt-4">
-						<div className="text-2xl font-bold">2,547</div>
-						<div className="text-sm text-muted-foreground">Active Vendors</div>
-					</div>
-					<div className="mt-2 text-xs text-muted-foreground">
-						+284 new this month
-					</div>
-				</Card>
-
-				<Card className="p-6">
-					<div className="flex items-center justify-between">
-						<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-							<Users className="h-6 w-6 text-primary" />
-						</div>
-						<div className="flex items-center gap-1 text-sm font-medium text-green-600">
-							<ArrowUpRight className="h-4 w-4" />
-							24.8%
-						</div>
-					</div>
-					<div className="mt-4">
-						<div className="text-2xl font-bold">48,392</div>
-						<div className="text-sm text-muted-foreground">Total Customers</div>
-					</div>
-					<div className="mt-2 text-xs text-muted-foreground">
-						+9,642 new this month
-					</div>
-				</Card>
-
-				<Card className="p-6">
-					<div className="flex items-center justify-between">
-						<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10">
-							<ShoppingBag className="h-6 w-6 text-accent" />
-						</div>
-						<div className="flex items-center gap-1 text-sm font-medium text-green-600">
-							<ArrowUpRight className="h-4 w-4" />
-							15.3%
-						</div>
-					</div>
-					<div className="mt-4">
-						<div className="text-2xl font-bold">12,847</div>
-						<div className="text-sm text-muted-foreground">Total Orders</div>
-					</div>
-					<div className="mt-2 text-xs text-muted-foreground">
-						+1,712 from last month
-					</div>
-				</Card>
-			</div>
-
-			{/* Pending Actions */}
-			<Card className="mt-8 border-accent/20 bg-accent/5 p-6">
-				<div className="flex items-start gap-4">
-					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/20">
-						<AlertCircle className="h-6 w-6 text-accent" />
-					</div>
-					<div className="flex-1">
-						<h3 className="font-semibold">Pending Actions Required</h3>
-						<p className="mt-1 text-sm text-muted-foreground">
-							You have 12 vendor applications awaiting approval and 3 reported
-							products to review
-						</p>
-					</div>
-					<Button variant="outline" asChild>
-						<Link href="/admin/dashboard/vendors">Review Now</Link>
-					</Button>
+			<div className="flex items-end justify-between">
+				<div>
+					<p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-1">
+						Command Center
+					</p>
+					<h1 className="text-4xl font-bold tracking-tighter text-zinc-900 dark:text-white">
+						Platform Overview
+					</h1>
+					<p className="text-zinc-500 text-sm mt-1">
+						Real-time intelligence across the entire Vendora marketplace.
+					</p>
 				</div>
-			</Card>
+				{stats?.pendingTierRequests > 0 && (
+					<Link href="/admin/dashboard/vendors?tab=upgrades">
+						<div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-all cursor-pointer group">
+							<AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+							<div>
+								<p className="text-[10px] font-bold uppercase tracking-widest text-amber-700">
+									Action Required
+								</p>
+								<p className="text-sm font-bold text-amber-900">
+									{stats.pendingTierRequests} Tier Upgrade{stats.pendingTierRequests > 1 ? "s" : ""} Pending
+								</p>
+							</div>
+							<ChevronRight className="h-4 w-4 text-amber-600 group-hover:translate-x-0.5 transition-transform" />
+						</div>
+					</Link>
+				)}
+			</div>
 
-			{/* Recent Activity & Top Vendors */}
-			<div className="mt-8 grid gap-6 lg:grid-cols-2">
-				{/* Recent Vendor Applications */}
-				<Card className="p-6">
-					<div className="mb-6 flex items-center justify-between">
-						<h2 className="font-serif text-xl font-semibold">
-							Recent Vendor Applications
-						</h2>
-						<Button variant="ghost" size="sm" asChild>
-							<Link href="/admin/dashboard/vendors">View all</Link>
+			{/* Stat cards */}
+			<div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+				{STAT_CARDS.map((s) => (
+					<Card key={s.label} className="p-6 border-border bg-white dark:bg-zinc-900 rounded-[1.5rem] shadow-sm hover:shadow-md transition-shadow">
+						{statsLoading ? (
+							<Loader2 className="h-5 w-5 animate-spin text-zinc-300" />
+						) : (
+							<>
+								<div className={cn("h-11 w-11 rounded-xl flex items-center justify-center mb-4", s.bg)}>
+									<s.icon className={cn("h-5 w-5", s.color)} />
+								</div>
+								<div className="text-2xl font-bold tracking-tighter text-zinc-900 dark:text-white">
+									{s.value}
+								</div>
+								<div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-1">
+									{s.label}
+								</div>
+							</>
+						)}
+					</Card>
+				))}
+			</div>
+
+			{/* Pending Tier Requests */}
+			<div className="grid lg:grid-cols-2 gap-6">
+				<Card className="bg-white dark:bg-zinc-900 border-border rounded-[1.5rem] shadow-sm overflow-hidden">
+					<div className="p-6 border-b border-border flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div className="h-9 w-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center">
+								<Zap className="h-4 w-4 text-amber-500" />
+							</div>
+							<div>
+								<h2 className="font-bold text-zinc-900 dark:text-white text-sm">Tier Upgrade Queue</h2>
+								<p className="text-[10px] text-zinc-400 font-medium">Requests awaiting review</p>
+							</div>
+						</div>
+						<Button variant="ghost" size="sm" asChild className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+							<Link href="/admin/dashboard/vendors?tab=upgrades">View All</Link>
 						</Button>
 					</div>
 
-					<div className="space-y-4">
-						{[
-							{
-								name: "Handcrafted Goods Co.",
-								category: "Home Decor",
-								date: "2 hours ago",
-								status: "Pending",
-							},
-							{
-								name: "Organic Skincare Studio",
-								category: "Beauty",
-								date: "5 hours ago",
-								status: "Pending",
-							},
-							{
-								name: "Vintage Finds Shop",
-								category: "Antiques",
-								date: "1 day ago",
-								status: "Pending",
-							},
-							{
-								name: "Local Pottery Works",
-								category: "Ceramics",
-								date: "1 day ago",
-								status: "Approved",
-							},
-						].map((vendor) => (
-							<div
-								key={vendor.name}
-								className="flex items-center justify-between border-b border-border pb-4 last:border-0"
-							>
-								<div className="flex items-center gap-3">
-									<div className="h-10 w-10 rounded-full bg-muted" />
-									<div>
-										<div className="font-medium">{vendor.name}</div>
-										<div className="text-sm text-muted-foreground">
-											{vendor.category}
+					<div className="divide-y divide-border">
+						{tierLoading ? (
+							<div className="p-10 flex justify-center">
+								<Loader2 className="h-5 w-5 animate-spin text-zinc-300" />
+							</div>
+						) : tierRequests.length === 0 ? (
+							<div className="p-10 text-center">
+								<p className="text-zinc-400 text-sm font-medium italic">All clear — no pending requests.</p>
+							</div>
+						) : (
+							tierRequests.slice(0, 4).map((req: any) => (
+								<div key={req.id} className="px-6 py-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+									<div className="flex items-center gap-3">
+										<div className="h-9 w-9 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-500">
+											{req.requestedTier?.charAt(0).toUpperCase()}
+										</div>
+										<div>
+											<p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
+												{req.currentTier} → {req.requestedTier}
+											</p>
+											<div className="flex items-center gap-1 mt-0.5">
+												<Clock className="h-3 w-3 text-zinc-400" />
+												<span className="text-[10px] text-zinc-400 font-medium">
+													{new Date(req.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+												</span>
+											</div>
 										</div>
 									</div>
-								</div>
-								<div className="text-right">
-									<Badge
-										variant={
-											vendor.status === "Pending" ? "secondary" : "default"
-										}
-									>
-										{vendor.status}
+									<Badge className="bg-amber-50 text-amber-700 border-none text-[8px] uppercase tracking-widest font-bold py-1 px-3">
+										Pending
 									</Badge>
-									<div className="mt-1 text-xs text-muted-foreground">
-										{vendor.date}
-									</div>
 								</div>
-							</div>
-						))}
+							))
+						)}
 					</div>
 				</Card>
 
-				{/* Top Performing Vendors */}
-				<Card className="p-6">
-					<div className="mb-6 flex items-center justify-between">
-						<h2 className="font-serif text-xl font-semibold">
-							Top Performing Vendors
-						</h2>
-						<Button variant="ghost" size="sm" asChild>
-							<Link href="/admin/dashboard/analytics">View all</Link>
-						</Button>
-					</div>
-
-					<div className="space-y-4">
+				{/* Quick Links */}
+				<Card className="bg-white dark:bg-zinc-900 border-border rounded-[1.5rem] shadow-sm p-6">
+					<h2 className="font-bold text-zinc-900 dark:text-white text-sm mb-5">
+						Quick Navigation
+					</h2>
+					<div className="space-y-3">
 						{[
-							{
-								name: "Artisan Crafts Co.",
-								sales: "$24,580",
-								orders: 342,
-								rating: 4.9,
-							},
-							{
-								name: "Handmade Haven",
-								sales: "$18,240",
-								orders: 256,
-								rating: 4.8,
-							},
-							{
-								name: "Local Makers Studio",
-								sales: "$15,890",
-								orders: 198,
-								rating: 4.7,
-							},
-							{
-								name: "Ceramic Dreams",
-								sales: "$12,450",
-								orders: 167,
-								rating: 4.9,
-							},
-						].map((vendor, index) => (
-							<div
-								key={vendor.name}
-								className="flex items-center gap-4 border-b border-border pb-4 last:border-0"
-							>
-								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">
-									#{index + 1}
-								</div>
-								<div className="flex-1">
-									<div className="font-medium">{vendor.name}</div>
-									<div className="text-sm text-muted-foreground">
-										{vendor.orders} orders • {vendor.rating} rating
+							{ label: "Manage Vendors", sub: "View and manage all merchant accounts", href: "/admin/dashboard/vendors", color: "bg-blue-50 text-blue-500 border-blue-100" },
+							{ label: "Tier Upgrade Requests", sub: "Review and approve verification applications", href: "/admin/dashboard/vendors?tab=upgrades", color: "bg-amber-50 text-amber-500 border-amber-100" },
+							{ label: "Product Catalogue", sub: "Browse and moderate listed products", href: "/admin/dashboard/products", color: "bg-violet-50 text-violet-500 border-violet-100" },
+						].map((item) => (
+							<Link key={item.label} href={item.href}>
+								<div className="flex items-center justify-between p-4 rounded-2xl border border-border hover:border-zinc-200 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all group cursor-pointer">
+									<div>
+										<p className="text-sm font-bold text-zinc-900 dark:text-white">{item.label}</p>
+										<p className="text-[10px] text-zinc-400 font-medium mt-0.5">{item.sub}</p>
 									</div>
+									<ArrowUpRight className="h-4 w-4 text-zinc-300 group-hover:text-zinc-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
 								</div>
-								<div className="text-right font-semibold">{vendor.sales}</div>
-							</div>
+							</Link>
 						))}
-					</div>
-				</Card>
-			</div>
-
-			{/* Platform Health */}
-			<div className="mt-8 grid gap-6 md:grid-cols-3">
-				<Card className="p-6">
-					<div className="flex items-center gap-3">
-						<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-							<TrendingUp className="h-6 w-6 text-primary" />
-						</div>
-						<div>
-							<div className="text-sm text-muted-foreground">
-								Avg Order Value
-							</div>
-							<div className="text-2xl font-bold">$87.50</div>
-						</div>
-					</div>
-				</Card>
-
-				<Card className="p-6">
-					<div className="flex items-center gap-3">
-						<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10">
-							<Package className="h-6 w-6 text-accent" />
-						</div>
-						<div>
-							<div className="text-sm text-muted-foreground">
-								Active Products
-							</div>
-							<div className="text-2xl font-bold">52,847</div>
-						</div>
-					</div>
-				</Card>
-
-				<Card className="p-6">
-					<div className="flex items-center gap-3">
-						<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-							<Store className="h-6 w-6 text-primary" />
-						</div>
-						<div>
-							<div className="text-sm text-muted-foreground">
-								Commission Rate
-							</div>
-							<div className="text-2xl font-bold">5.0%</div>
-						</div>
 					</div>
 				</Card>
 			</div>
 		</div>
-	);
-}
-
-function Package(props: React.SVGProps<SVGSVGElement>) {
-	return (
-		<svg
-			{...props}
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		>
-			<path d="m7.5 4.27 9 5.15" />
-			<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
-			<path d="m3.3 7 8.7 5 8.7-5" />
-			<path d="M12 22V12" />
-		</svg>
 	);
 }

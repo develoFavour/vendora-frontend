@@ -1,599 +1,830 @@
+"use client";
+
+import { useRef, useEffect, useState } from "react";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
 	ArrowRight,
 	Store,
-	ShoppingCart,
-	TrendingUp,
 	Shield,
-	Users,
-	Heart,
-	MapPin,
+	Zap,
+	Star,
+	ChevronLeft,
+	ChevronRight,
+	Quote,
 } from "lucide-react";
 import Link from "next/link";
 import { ProductCard } from "@/components/marketplace/product-card";
 import { VendorCard } from "@/components/marketplace/vendor-card";
+import { usePublicProducts } from "@/hooks/use-public-products";
 
+import ReactLenis from "@studio-freight/react-lenis";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+if (typeof window !== "undefined") {
+	gsap.registerPlugin(ScrollTrigger);
+}
+
+/* ─── Constants ─── */
+const marqueeItems = [
+	"Curated Quality",
+	"Independent Sellers",
+	"Verified Vendors",
+	"Secure Checkout",
+	"Handcrafted Goods",
+	"Global Shipping",
+	"Premium Materials",
+	"Timeless Design",
+	"Artisan Made",
+	"Conscious Shopping",
+];
+
+const categories = [
+	{ name: "Fashion", count: 1240 },
+	{ name: "Home & Living", count: 856 },
+	{ name: "Art & Prints", count: 423 },
+	{ name: "Jewelry", count: 312 },
+	{ name: "Tech Accessories", count: 198 },
+];
+
+const testimonials = [
+	{
+		name: "Sarah Mitchell",
+		role: "Interior Designer",
+		text: "Every piece I've found on Vendora feels premium. The quality from these independent sellers is unmatched — it's completely changed how I source for my clients.",
+		rating: 5,
+		reviews: 34,
+	},
+	{
+		name: "James Okonkwo",
+		role: "Fashion Curator",
+		text: "Vendora connects me directly with artisans I'd never discover otherwise. The curation is incredible and each purchase feels intentional.",
+		rating: 5,
+		reviews: 52,
+	},
+	{
+		name: "Amara Chen",
+		role: "Lifestyle Blogger",
+		text: "The marketplace feels alive — new drops every week, beautiful product photography, and the checkout is seamless. My audience loves the finds.",
+		rating: 5,
+		reviews: 41,
+	},
+];
+
+const featuredVendors = [
+	{
+		id: "1",
+		name: "Artisan Pottery Co.",
+		description: "Handmade ceramics crafted with precision and raw emotion.",
+		location: "Portland, OR",
+		rating: 4.9,
+	},
+	{
+		id: "2",
+		name: "Lumina Studio",
+		description: "Minimalist lighting combining form and elegance.",
+		location: "Copenhagen, DK",
+		rating: 4.8,
+	},
+	{
+		id: "3",
+		name: "Timber & Grain",
+		description: "Premium woodwork defining the modern sanctuary.",
+		location: "Seattle, WA",
+		rating: 5.0,
+	},
+];
+
+/* ─── Page ─── */
 export default function HomePage() {
-	const featuredProducts = [
-		{
-			id: "1",
-			name: "Handcrafted Ceramic Vase",
-			price: 89.99,
-			image:
-				"https://parkergibbs.com/products/handcrafted-textured-ceramic-vase",
-			vendor: "Artisan Pottery Co.",
-			rating: 4.8,
-			reviews: 124,
-		},
-		{
-			id: "2",
-			name: "Organic Cotton Tote Bag",
-			price: 34.99,
-			image:
-				"https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=800&q=80",
-			vendor: "EcoStyle Goods",
-			rating: 4.9,
-			reviews: 89,
-		},
-		{
-			id: "3",
-			name: "Wooden Cutting Board Set",
-			price: 125.0,
-			image:
-				"https://images.unsplash.com/photo-1594756202469-9ff9799b2e4e?w=800&q=80",
-			vendor: "Timber & Grain",
-			rating: 5.0,
-			reviews: 203,
-		},
-		{
-			id: "4",
-			name: "Hand-Poured Soy Candles",
-			price: 28.5,
-			image:
-				"https://images.unsplash.com/photo-1602874801006-e24b3e8d6d0d?w=800&q=80",
-			vendor: "Lumière Candle Co.",
-			rating: 4.7,
-			reviews: 156,
-		},
-	];
+	const { data: productsData, isLoading: productsLoading } =
+		usePublicProducts({ limit: 8 });
+	const featuredProducts = productsData?.data?.products || [];
 
-	const featuredVendors = [
-		{
-			id: "1",
-			name: "Artisan Pottery Co.",
-			description: "Handmade ceramics crafted with love and care",
-			image:
-				"https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800&q=80",
-			location: "Portland, OR",
-			rating: 4.9,
-			products: 45,
-			verified: true,
-		},
-		{
-			id: "2",
-			name: "EcoStyle Goods",
-			description: "Sustainable fashion and accessories",
-			image:
-				"https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
-			location: "Austin, TX",
-			rating: 4.8,
-			products: 78,
-			verified: true,
-		},
-		{
-			id: "3",
-			name: "Timber & Grain",
-			description: "Premium woodwork and home essentials",
-			image:
-				"https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=800&q=80",
-			location: "Seattle, WA",
-			rating: 5.0,
-			products: 32,
-			verified: true,
-		},
-	];
+	const containerRef = useRef<HTMLDivElement>(null);
+	const [testimonialIndex, setTestimonialIndex] = useState(0);
+	const currentTestimonial = testimonials[testimonialIndex];
 
-	const categories = [
-		{
-			name: "Home & Living",
-			count: 12500,
-			icon: "🏠",
-			color: "bg-sage/10 text-sage",
+	useGSAP(
+		() => {
+			const timer = setTimeout(() => {
+				const ctx = gsap.context(() => {
+					/* ── Hero text stagger (not scroll-triggered, pure entrance) ── */
+					gsap.from(".hero-line", {
+						y: 80,
+						opacity: 0,
+						duration: 1,
+						ease: "power3.out",
+						stagger: 0.12,
+						delay: 0.2,
+					});
+
+					gsap.from(".hero-subtitle", {
+						y: 30,
+						opacity: 0,
+						duration: 0.8,
+						ease: "power3.out",
+						delay: 0.7,
+					});
+
+					gsap.from(".hero-image", {
+						scale: 1.15,
+						opacity: 0,
+						duration: 1.2,
+						ease: "power2.out",
+						delay: 0.3,
+					});
+
+					gsap.from(".hero-badge", {
+						scale: 0,
+						opacity: 0,
+						duration: 0.6,
+						ease: "back.out(1.7)",
+						stagger: 0.1,
+						delay: 1,
+					});
+
+					/* ── Generic scroll-triggered fade ups ── */
+					gsap.utils.toArray<HTMLElement>(".gs-fade").forEach((el) => {
+						gsap.fromTo(
+							el,
+							{ y: 30, opacity: 0 },
+							{
+								y: 0,
+								opacity: 1,
+								duration: 0.6,
+								ease: "power3.out",
+								scrollTrigger: {
+									trigger: el,
+									start: "top 97%",
+									toggleActions: "play none none none",
+								},
+							}
+						);
+					});
+
+					/* ── Stagger groups ── */
+					gsap.utils
+						.toArray<HTMLElement>(".gs-stagger-group")
+						.forEach((group) => {
+							const children = group.querySelectorAll(".gs-stagger-child");
+							gsap.fromTo(
+								children,
+								{ y: 30, opacity: 0 },
+								{
+									y: 0,
+									opacity: 1,
+									duration: 0.5,
+									ease: "power3.out",
+									stagger: 0.06,
+									scrollTrigger: {
+										trigger: group,
+										start: "top 96%",
+										toggleActions: "play none none none",
+									},
+								}
+							);
+						});
+
+					/* ── Category names slide-in ── */
+					gsap.utils.toArray<HTMLElement>(".cat-item").forEach((el, i) => {
+						gsap.fromTo(
+							el,
+							{ x: i % 2 === 0 ? -40 : 40, opacity: 0 },
+							{
+								x: 0,
+								opacity: 1,
+								duration: 0.5,
+								ease: "power3.out",
+								scrollTrigger: {
+									trigger: el,
+									start: "top 98%",
+									toggleActions: "play none none none",
+								},
+							}
+						);
+					});
+
+					/* ── Parallax images ── */
+					gsap.utils.toArray<HTMLElement>(".gs-parallax").forEach((el) => {
+						gsap.fromTo(
+							el,
+							{ yPercent: -8 },
+							{
+								yPercent: 8,
+								ease: "none",
+								scrollTrigger: {
+									trigger: el.parentElement,
+									start: "top bottom",
+									end: "bottom top",
+									scrub: true,
+								},
+							}
+						);
+					});
+
+					/* Refresh AFTER all triggers are registered so elements
+					   already in the viewport get their animations fired */
+					ScrollTrigger.refresh();
+				}, containerRef);
+
+				return () => ctx.revert();
+			}, 50);
+
+			return () => clearTimeout(timer);
 		},
-		{
-			name: "Fashion & Accessories",
-			count: 8900,
-			icon: "👗",
-			color: "bg-terracotta/10 text-terracotta",
-		},
-		{
-			name: "Art & Collectibles",
-			count: 6700,
-			icon: "🎨",
-			color: "bg-sage/10 text-sage",
-		},
-		{
-			name: "Jewelry",
-			count: 5400,
-			icon: "💎",
-			color: "bg-terracotta/10 text-terracotta",
-		},
-		{
-			name: "Food & Beverages",
-			count: 3200,
-			icon: "🍽️",
-			color: "bg-sage/10 text-sage",
-		},
-		{
-			name: "Beauty & Wellness",
-			count: 4100,
-			icon: "✨",
-			color: "bg-terracotta/10 text-terracotta",
-		},
-	];
+		{ scope: containerRef, dependencies: [productsLoading] }
+	);
 
 	return (
-		<div className="flex min-h-screen flex-col">
-			<Navigation />
+		<ReactLenis root options={{ smoothWheel: true, lerp: 0.14, duration: 0.8 }}>
+			<div
+				ref={containerRef}
+				className="flex min-h-screen flex-col bg-[#F5F4F0] text-[#1A1A1A] font-sans relative overflow-x-clip selection:bg-primary selection:text-primary-foreground"
+			>
+				<Navigation />
 
-			{/* Hero Section - Asymmetric layout */}
-			<section className="relative overflow-hidden border-b border-border">
-				<div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
-					<div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-						<div className="flex flex-col justify-center">
-							<Badge className="mb-6 w-fit bg-accent/10 text-accent hover:bg-accent/20">
-								Supporting Local Businesses
-							</Badge>
-							<h1 className="text-5xl md:text-7xl lg:text-8xl tracking-tighter text-balance">
-								Where independent <br />
-								<span className="text-primary italic">sellers thrive.</span>
-							</h1>
-							<p className="mt-6 text-lg text-muted-foreground leading-relaxed text-pretty">
-								Discover unique products from passionate creators. One
-								marketplace, multiple vendors, endless possibilities. Shop
-								consciously, support locally.
-							</p>
-							<div className="mt-8 flex flex-col gap-4 sm:flex-row">
-								<Button size="lg" asChild className="text-base">
-									<Link href="/marketplace">
-										Explore Marketplace
-										<ArrowRight className="ml-2 h-5 w-5" />
-									</Link>
-								</Button>
+				{/* ═══════════════════════════════════════════════════
+					HERO — High-End Editorial
+				═══════════════════════════════════════════════════ */}
+				<section className="relative min-h-[95vh] flex items-center overflow-hidden bg-[#FBFAF7]">
+					{/* Subtle Background Elements */}
+					<div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3 External%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
+
+					{/* The "Golden Halo" - Harmonizes with the image without flooding the section */}
+					<div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#F4BC2C]/10 rounded-full blur-[120px] pointer-events-none" />
+
+					<div className="relative w-full max-w-[1440px] mx-auto px-8 md:px-16 lg:px-24 py-12">
+						<div className="relative flex flex-col lg:flex-row items-center justify-between">
+
+							{/* LEFT: Discover Unique */}
+							<div className="lg:w-[45%] z-20">
+								<div className="space-y-0">
+									<div className="overflow-hidden py-4 px-2 pr-12 w-max">
+										<h1 className="hero-line text-[clamp(4rem,9vw,9rem)] font-sans font-black leading-none tracking-[-0.05em] text-[#1A1A1A]">
+											Discover
+										</h1>
+									</div>
+									<div className="overflow-hidden py-4 px-2 pr-12 mt-1 w-max">
+										<h1 className="hero-line text-[clamp(4rem,9vw,9rem)] font-sans font-black leading-none tracking-[-0.05em] text-[#1A1A1A]">
+											<span className="text-transparent" style={{ WebkitTextStroke: "1px #1A1A1A" }}>Unique</span>
+										</h1>
+									</div>
+								</div>
+
+								<div className="hero-subtitle mt-12 space-y-6 max-w-sm">
+									<div className="flex items-center gap-4">
+										<div className="h-[1px] w-12 bg-primary/30" />
+										<span className="text-[11px] font-bold uppercase tracking-[0.4em] text-primary">
+											Premium Marketplace
+										</span>
+									</div>
+									<p className="text-base text-muted-foreground leading-relaxed">
+										A curated ecosystem of independent visionaries. We bridge the gap between artisan craft and the modern connoisseur.
+									</p>
+
+									<div className="flex flex-wrap gap-4 pt-4">
+										<Button
+											size="lg"
+											asChild
+											className="h-14 px-10 rounded-full font-bold bg-primary hover:bg-primary/90 text-white shadow-2xl shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+										>
+											<Link href="/marketplace">
+												Shop Now <ArrowRight className="ml-2 h-5 w-5" />
+											</Link>
+										</Button>
+										<Button
+											size="lg"
+											variant="outline"
+											asChild
+											className="h-14 px-10 rounded-full font-bold border-[#1A1A1A]/10 bg-white/50 backdrop-blur-sm hover:bg-white hover:border-primary/30 transition-all"
+										>
+											<Link href="/signup">Vendor Hub</Link>
+										</Button>
+									</div>
+								</div>
+							</div>
+
+							{/* CENTER: The Portrait */}
+							<div className="lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 z-10 my-16 lg:my-0">
+								<div className="hero-image relative group">
+									{/* Decorative frame elements */}
+									<div className="absolute -inset-4 border border-[#1A1A1A]/5 rounded-[2.5rem] pointer-events-none transition-transform duration-700 group-hover:scale-105" />
+
+									<div className="relative w-[320px] md:w-[400px] lg:w-[440px] xl:w-[480px] aspect-[3/4.2] rounded-[2rem] overflow-hidden shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)]">
+										<img
+											src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1000&q=90"
+											alt="Fashion model"
+											className="w-full h-full object-cover object-top gs-parallax scale-110 group-hover:scale-105 transition-transform duration-1000"
+										/>
+										{/* Subtle overlay gradient to blend bottom */}
+										<div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent opacity-60" />
+									</div>
+
+									{/* Floaties */}
+									<div className="hero-badge absolute -bottom-10 -right-6 md:-right-10 bg-white/90 backdrop-blur-md rounded-3xl p-5 shadow-2xl z-30 border border-white">
+										<div className="flex items-center gap-4">
+											<div className="flex -space-x-3">
+												{[1, 2, 3].map(i => (
+													<div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-100" />
+												))}
+											</div>
+											<div>
+												<p className="text-xs font-black uppercase tracking-widest text-[#1A1A1A]">Curated</p>
+												<p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">12.4k+ Items</p>
+											</div>
+										</div>
+									</div>
+
+									<div className="hero-badge absolute top-1/4 -left-8 text-primary shadow-xl p-3 bg-white rounded-2xl animate-bounce-slow">
+										<Star className="w-6 h-6 fill-primary" />
+									</div>
+								</div>
+							</div>
+
+							{/* RIGHT: Shop Direct */}
+							<div className="lg:w-[45%] z-20 flex flex-col items-end text-right">
+								<div className="space-y-0">
+									<div className="overflow-hidden py-4 px-2 pl-12 w-max">
+										<h1 className="hero-line text-[clamp(4rem,9vw,9rem)] font-sans font-black leading-none tracking-[-0.05em] text-[#1A1A1A]">
+											Shop
+										</h1>
+									</div>
+									<div className="overflow-hidden py-4 px-2 pl-12 mt-1 w-max">
+										<h1 className="hero-line text-[clamp(4rem,9vw,9rem)] font-sans font-black leading-none tracking-[-0.05em] text-[#1A1A1A]">
+											<span className="text-transparent" style={{ WebkitTextStroke: "1px #1A1A1A" }}>Direct</span>
+										</h1>
+									</div>
+								</div>
+
+								<div className="hero-subtitle mt-12 flex flex-col items-end gap-6">
+									<div className="flex items-center gap-4">
+										<span className="text-[11px] font-bold uppercase tracking-[0.4em] text-muted-foreground">
+											Est. 2026
+										</span>
+										<div className="h-[1px] w-12 bg-black/10" />
+									</div>
+
+									<div className="bg-white/40 backdrop-blur-sm p-6 rounded-3xl border border-[#1A1A1A]/5 shadow-sm">
+										<p className="text-5xl font-sans font-black tracking-tighter text-primary">
+											2.5k+
+										</p>
+										<p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mt-2">
+											Verified Creators
+										</p>
+									</div>
+
+									<div className="mt-8 flex items-center gap-3 decoration-primary/30 underline-offset-8 underline cursor-pointer hover:text-primary transition-colors font-bold uppercase text-[10px] tracking-widest">
+										Explore the lookbook <ArrowRight className="w-3 h-3" />
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				{/* ═══════════════════════════════════════════════════
+					INFINITE MARQUEE TICKER
+				═══════════════════════════════════════════════════ */}
+				<div className="relative py-5 border-y border-[#1A1A1A]/10 bg-[#F5F4F0] overflow-hidden">
+					<div className="flex whitespace-nowrap animate-[marquee_30s_linear_infinite]">
+						{[...marqueeItems, ...marqueeItems].map((item, i) => (
+							<span
+								key={i}
+								className="mx-6 text-sm font-bold uppercase tracking-[0.2em] text-[#1A1A1A]/40 flex items-center gap-6 shrink-0"
+							>
+								{item}
+								<span className="text-primary text-lg">+</span>
+							</span>
+						))}
+					</div>
+				</div>
+
+				{/* ═══════════════════════════════════════════════════
+					FEATURED PRODUCTS — Editorial Grid
+				═══════════════════════════════════════════════════ */}
+				<section className="py-24 md:py-32 bg-[#F5F4F0]">
+					<div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20">
+						{/* Section header */}
+						<div className="gs-fade flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+							<div>
+								<h2 className="text-5xl md:text-6xl lg:text-7xl font-serif font-bold tracking-tighter leading-[0.9]">
+									All — about
+									<br />
+									<span className="text-primary/40 italic font-light">
+										moments
+									</span>{" "}
+									©26
+								</h2>
+								<div className="flex items-center gap-3 mt-6">
+									<div className="w-2 h-2 rounded-full bg-primary" />
+									<div className="w-2 h-2 rounded-full bg-accent/60" />
+								</div>
+							</div>
+							<div className="flex flex-col items-end gap-4">
+								<p className="text-sm text-muted-foreground max-w-xs text-right leading-relaxed">
+									Where elegance meets accessibility. Curated products from
+									verified sellers, made for you.
+								</p>
 								<Button
-									size="lg"
 									variant="outline"
 									asChild
-									className="text-base bg-transparent"
+									className="rounded-full px-6 h-11 font-bold uppercase text-xs tracking-widest border-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white transition-all"
 								>
-									<Link href="/auth/signup">Start Selling</Link>
+									<Link href="/marketplace">
+										View All <ArrowRight className="ml-2 h-3 w-3" />
+									</Link>
 								</Button>
 							</div>
+						</div>
 
-							{/* Trust indicators */}
-							<div className="mt-12 flex flex-wrap items-center gap-8 border-t border-border pt-8">
-								<div>
-									<div className="text-2xl font-bold">2,500+</div>
-									<div className="text-sm text-muted-foreground">
-										Active Vendors
+						{/* Products grid */}
+						<div className="gs-stagger-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+							{productsLoading
+								? Array.from({ length: 4 }).map((_, i) => (
+									<div key={i} className="gs-stagger-child space-y-4">
+										<Skeleton className="aspect-[4/5] rounded-3xl" />
+										<Skeleton className="h-4 w-3/4 rounded-lg" />
+										<Skeleton className="h-4 w-1/2 rounded-lg" />
 									</div>
-								</div>
-								<div>
-									<div className="text-2xl font-bold">50K+</div>
-									<div className="text-sm text-muted-foreground">
-										Products Listed
+								))
+								: featuredProducts
+									.slice(0, 4)
+									.map((product: any) => (
+										<div key={product.id} className="gs-stagger-child">
+											<ProductCard
+												id={product.id}
+												name={product.name}
+												image={product.images?.[0]}
+												price={product.price}
+												vendor={product.vendorName || "Independent Seller"}
+												inStock={(product.stock ?? 1) > 0}
+											/>
+										</div>
+									))}
+						</div>
+
+						{/* Second row */}
+						{!productsLoading && featuredProducts.length > 4 && (
+							<div className="gs-stagger-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mt-8">
+								{featuredProducts.slice(4, 8).map((product: any) => (
+									<div key={product.id} className="gs-stagger-child">
+										<ProductCard
+											id={product.id}
+											name={product.name}
+											image={product.images?.[0]}
+											price={product.price}
+											vendor={product.vendorName || "Independent Seller"}
+											inStock={(product.stock ?? 1) > 0}
+										/>
 									</div>
-								</div>
-								<div>
-									<div className="text-2xl font-bold">4.8/5</div>
-									<div className="text-sm text-muted-foreground">
-										Average Rating
-									</div>
-								</div>
+								))}
 							</div>
-						</div>
-
-						{/* Hero visual - Bento grid of vendor cards */}
-						<div className="grid grid-cols-2 gap-4">
-							<Card className="col-span-2 overflow-hidden border-2 border-primary/20 p-6">
-								<div className="flex items-start justify-between">
-									<div>
-										<div className="mb-2 flex items-center gap-2">
-											<div className="h-10 w-10 rounded-full bg-primary/10" />
-											<div>
-												<div className="font-semibold">Artisan Crafts Co.</div>
-												<div className="text-xs text-muted-foreground">
-													Handmade Goods
-												</div>
-											</div>
-										</div>
-										<p className="text-sm text-muted-foreground">
-											Sustainable, handcrafted home decor
-										</p>
-									</div>
-									<Badge variant="secondary">Verified</Badge>
-								</div>
-								<div className="mt-4 flex items-center gap-2 text-sm">
-									<MapPin className="h-4 w-4 text-accent" />
-									<span className="text-muted-foreground">Portland, OR</span>
-								</div>
-							</Card>
-
-							<Card className="overflow-hidden p-4">
-								<div className="aspect-square rounded-md bg-muted" />
-								<div className="mt-3">
-									<div className="text-sm font-medium">Ceramic Vase</div>
-									<div className="text-sm font-semibold text-primary">$45</div>
-								</div>
-							</Card>
-
-							<Card className="overflow-hidden p-4">
-								<div className="aspect-square rounded-md bg-muted" />
-								<div className="mt-3">
-									<div className="text-sm font-medium">Woven Basket</div>
-									<div className="text-sm font-semibold text-primary">$32</div>
-								</div>
-							</Card>
-
-							<Card className="col-span-2 bg-accent/5 p-4">
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-3">
-										<div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/20">
-											<TrendingUp className="h-6 w-6 text-accent" />
-										</div>
-										<div>
-											<div className="text-sm font-semibold">
-												Trending This Week
-											</div>
-											<div className="text-xs text-muted-foreground">
-												+127% sales increase
-											</div>
-										</div>
-									</div>
-									<ArrowRight className="h-5 w-5 text-accent" />
-								</div>
-							</Card>
-						</div>
+						)}
 					</div>
-				</div>
-			</section>
+				</section>
 
-			{/* Featured Products Section */}
-			<section className="py-16 sm:py-24 border-b border-border">
-				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-					<div className="flex items-end justify-between mb-12">
-						<div>
-							<Badge className="mb-4 bg-terracotta/10 text-terracotta border-terracotta/20 font-bold tracking-widest uppercase text-[10px]">
-								Trending Now
-							</Badge>
-							<h2 className="text-4xl md:text-5xl lg:text-6xl">
-								Featured <span className="italic text-primary">Products</span>
-							</h2>
-							<p className="mt-6 text-lg text-muted-foreground">
-								Handpicked items from our top vendors
-							</p>
-						</div>
-						<Button
-							variant="outline"
-							asChild
-							className="hidden sm:flex bg-transparent"
-						>
-							<Link href="/marketplace">
-								View All
-								<ArrowRight className="ml-2 h-4 w-4" />
-							</Link>
-						</Button>
-					</div>
-
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-						{featuredProducts.map((product) => (
-							<ProductCard
-								key={product.id}
-								id={product.id}
-								name={product.name}
-								image={product.image}
-								price={product.price.toString()}
-								vendor={product.vendor}
-							/>
-						))}
-					</div>
-
-					<div className="mt-8 flex justify-center sm:hidden">
-						<Button variant="outline" asChild className="w-full bg-transparent">
-							<Link href="/marketplace">
-								View All Products
-								<ArrowRight className="ml-2 h-4 w-4" />
-							</Link>
-						</Button>
-					</div>
-				</div>
-			</section>
-
-			{/* Categories Section */}
-			<section className="py-16 sm:py-24 bg-gradient-to-br from-cream/30 to-background border-b border-border">
-				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-					<div className="text-center mb-16">
-						<Badge className="mb-4 bg-sage/10 text-sage border-sage/20 font-bold tracking-widest uppercase text-[10px]">
-							Browse by Category
-						</Badge>
-						<h2 className="text-4xl md:text-5xl lg:text-6xl">
-							Shop What You <span className="italic">Love</span>
-						</h2>
-						<p className="mt-6 text-lg text-muted-foreground">
-							Explore thousands of unique products across categories
-						</p>
-					</div>
-
-					<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-						{categories.map((category) => (
-							<Link
-								key={category.name}
-								href={`/marketplace?category=${encodeURIComponent(
-									category.name
-								)}`}
-							>
-								<Card className="p-6 hover:shadow-lg transition-all hover:scale-105 cursor-pointer border-border/50">
-									<div
-										className={`inline-flex items-center justify-center w-12 h-12 rounded-lg ${category.color} mb-4 text-2xl`}
-									>
-										{category.icon}
-									</div>
-									<h3 className="font-semibold text-lg mb-1">
-										{category.name}
-									</h3>
-									<p className="text-sm text-muted-foreground">
-										{category.count.toLocaleString()} products
+				{/* ═══════════════════════════════════════════════════
+					CATEGORIES — Bold Typography
+				═══════════════════════════════════════════════════ */}
+				<section className="py-24 md:py-32 bg-white border-y border-[#1A1A1A]/5">
+					<div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20">
+						<div className="grid lg:grid-cols-12 gap-12 items-start">
+							{/* Left: Image + description */}
+							<div className="lg:col-span-5">
+								<div className="gs-fade relative aspect-[3/4] w-full max-w-[400px] rounded-[2rem] overflow-hidden shadow-xl">
+									<img
+										src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80"
+										alt="Shop categories"
+										className="w-full h-full object-cover gs-parallax scale-110"
+									/>
+								</div>
+								<div className="gs-fade mt-8 max-w-sm">
+									<p className="text-base text-muted-foreground leading-relaxed">
+										Every piece carries rhythm beyond commerce — it&apos;s
+										purpose and meaning, where independent craft meets
+										discerning taste.
 									</p>
-								</Card>
-							</Link>
-						))}
-					</div>
-				</div>
-			</section>
+									<Button
+										variant="outline"
+										asChild
+										className="mt-6 rounded-full px-6 h-11 font-bold uppercase text-xs tracking-widest border-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white transition-all"
+									>
+										<Link href="/marketplace">
+											See Products <ArrowRight className="ml-2 h-3 w-3" />
+										</Link>
+									</Button>
+								</div>
+							</div>
 
-			{/* Vendor Spotlight Section */}
-			<section className="py-16 sm:py-24 border-b border-border">
-				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-					<div className="flex items-end justify-between mb-12">
-						<div>
-							<Badge className="mb-4 bg-sage/10 text-sage border-sage/20 font-bold tracking-widest uppercase text-[10px]">
-								Vendor Spotlight
-							</Badge>
-							<h2 className="text-4xl md:text-5xl lg:text-6xl">
-								Meet Our <span className="italic text-primary">Makers</span>
-							</h2>
-							<p className="mt-6 text-lg text-muted-foreground">
-								Discover the talented artisans behind your favorite products
-							</p>
+							{/* Right: categories list */}
+							<div className="lg:col-span-7">
+								<div className="gs-fade mb-8 flex items-center justify-between">
+									<span className="text-[11px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
+										[Categories]
+									</span>
+									<span className="text-[11px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
+										—————
+									</span>
+								</div>
+								<div className="space-y-2">
+									{categories.map((cat, i) => (
+										<Link
+											key={cat.name}
+											href="/marketplace"
+											className="cat-item group flex items-baseline gap-4 py-4 border-b border-[#1A1A1A]/5 hover:border-primary/30 transition-colors"
+										>
+											<span className="text-[11px] font-mono text-muted-foreground/50 tracking-wider">
+												[{String(i + 1).padStart(2, "0")}]
+											</span>
+											<span className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold tracking-tight group-hover:text-primary transition-colors duration-300">
+												{cat.name}
+											</span>
+											<span className="text-2xl md:text-3xl lg:text-4xl font-serif text-muted-foreground/30 tracking-tight">
+												({cat.count})
+											</span>
+										</Link>
+									))}
+								</div>
+							</div>
 						</div>
-						<Button
-							variant="outline"
-							asChild
-							className="hidden sm:flex bg-transparent"
-						>
-							<Link href="/vendors">
-								All Vendors
-								<ArrowRight className="ml-2 h-4 w-4" />
-							</Link>
-						</Button>
 					</div>
+				</section>
 
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-						{featuredVendors.map((vendor) => (
-							<VendorCard
-								key={vendor.id}
-								id={vendor.id}
-								description={vendor.description}
-								name={vendor.name}
-								category={""}
-								location={vendor.location}
-								rating={vendor.rating}
-							/>
+				{/* ═══════════════════════════════════════════════════
+					MARQUEE (repeated for rhythm)
+				═══════════════════════════════════════════════════ */}
+				<div className="relative py-5 border-b border-[#1A1A1A]/10 bg-[#F5F4F0] overflow-hidden">
+					<div className="flex whitespace-nowrap animate-[marquee_25s_linear_infinite_reverse]">
+						{[...marqueeItems, ...marqueeItems].map((item, i) => (
+							<span
+								key={i}
+								className="mx-6 text-sm font-bold uppercase tracking-[0.2em] text-[#1A1A1A]/40 flex items-center gap-6 shrink-0"
+							>
+								{item}
+								<span className="text-accent text-lg">+</span>
+							</span>
 						))}
 					</div>
-
-					<div className="mt-8 flex justify-center sm:hidden">
-						<Button variant="outline" asChild className="w-full bg-transparent">
-							<Link href="/vendors">
-								View All Vendors
-								<ArrowRight className="ml-2 h-4 w-4" />
-							</Link>
-						</Button>
-					</div>
 				</div>
-			</section>
 
-			{/* How It Works */}
-			<section className="border-b border-border py-16 sm:py-24">
-				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-					<div className="text-center">
-						<h2 className="text-4xl md:text-5xl lg:text-6xl">
-							How Vendora <span className="italic">Works</span>
-						</h2>
-						<p className="mt-6 text-lg text-muted-foreground">
-							A seamless experience for buyers and sellers alike
-						</p>
-					</div>
-
-					<div className="mt-16 grid gap-8 md:grid-cols-3">
-						<Card className="border-2 p-8">
-							<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-								<Store className="h-6 w-6 text-primary" />
-							</div>
-							<h3 className="mt-6 text-xl font-semibold">
-								Discover Unique Vendors
-							</h3>
-							<p className="mt-3 text-muted-foreground leading-relaxed">
-								Browse products from independent sellers. Each vendor brings
-								their unique story and craftsmanship to the marketplace.
-							</p>
-						</Card>
-
-						<Card className="border-2 p-8">
-							<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10">
-								<ShoppingCart className="h-6 w-6 text-accent" />
-							</div>
-							<h3 className="mt-6 text-xl font-semibold">Unified Checkout</h3>
-							<p className="mt-3 text-muted-foreground leading-relaxed">
-								Add items from multiple vendors to your cart and checkout once.
-								We handle the complexity, you enjoy the simplicity.
-							</p>
-						</Card>
-
-						<Card className="border-2 p-8">
-							<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-								<Heart className="h-6 w-6 text-primary" />
-							</div>
-							<h3 className="mt-6 text-xl font-semibold">Support Local</h3>
-							<p className="mt-3 text-muted-foreground leading-relaxed">
-								Filter by location to find vendors near you. Your purchase
-								directly supports small businesses and local economies.
-							</p>
-						</Card>
-					</div>
-				</div>
-			</section>
-
-			{/* For Vendors Section */}
-			<section className="bg-muted/30 py-16 sm:py-24">
-				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-					<div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-						<div>
-							<Badge className="mb-6 bg-primary/10 text-primary hover:bg-primary/20 font-bold tracking-widest uppercase text-[10px]">
-								For Vendors
-							</Badge>
-							<h2 className="text-4xl md:text-5xl lg:text-6xl text-balance">
-								Your store, <span className="italic">your rules,</span> <br />
-								our platform.
+				{/* ═══════════════════════════════════════════════════
+					HOW IT WORKS — Clean Cards
+				═══════════════════════════════════════════════════ */}
+				<section className="py-24 md:py-32 bg-[#F5F4F0]">
+					<div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20">
+						<div className="gs-fade text-center mb-20">
+							<span className="text-[11px] font-bold uppercase tracking-[0.3em] text-primary mb-4 inline-block">
+								[How It Works]
+							</span>
+							<h2 className="text-5xl md:text-6xl lg:text-7xl font-serif font-bold tracking-tighter leading-[0.9]">
+								Built for{" "}
+								<span className="italic font-light text-primary">trust</span>
 							</h2>
-							<p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-								Join thousands of independent sellers who trust Vendora to power
-								their online business. Get the tools you need to succeed without
-								the complexity.
-							</p>
+						</div>
 
-							<div className="mt-8 space-y-6">
-								<div className="flex gap-4">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-										<TrendingUp className="h-5 w-5 text-primary" />
-									</div>
-									<div>
-										<h3 className="font-semibold">Real-Time Analytics</h3>
-										<p className="text-sm text-muted-foreground">
-											Track sales, monitor inventory, and understand your
-											customers with powerful dashboards.
+						<div className="gs-stagger-group grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+							{[
+								{
+									num: "01",
+									icon: Store,
+									title: "Curated Marketplace",
+									desc: "Every product is vetted for quality. We partner exclusively with passionate, independent sellers worldwide.",
+								},
+								{
+									num: "02",
+									icon: Shield,
+									title: "Secure Transactions",
+									desc: "Built-in escrow, buyer protection, and verified vendors ensure every purchase is safe and seamless.",
+								},
+								{
+									num: "03",
+									icon: Zap,
+									title: "Fast Fulfillment",
+									desc: "From checkout to doorstep — our logistics network guarantees timely delivery across the globe.",
+								},
+							].map((feature) => (
+								<Card
+									key={feature.num}
+									className="gs-stagger-child group relative h-full border border-[#1A1A1A]/[0.06] bg-white hover:border-primary/20 rounded-3xl p-10 transition-all duration-500 hover:shadow-xl hover:shadow-primary/5 overflow-hidden"
+								>
+									<div className="absolute top-0 right-0 w-40 h-40 bg-primary/[0.03] rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+									<div className="relative z-10">
+										<div className="flex items-center justify-between mb-8">
+											<span className="text-5xl font-serif font-light text-[#1A1A1A]/10 group-hover:text-primary/15 transition-colors duration-500">
+												{feature.num}
+											</span>
+											<div className="h-14 w-14 rounded-2xl border border-[#1A1A1A]/[0.06] bg-[#F5F4F0] flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all duration-500">
+												<feature.icon className="h-6 w-6 text-primary group-hover:text-white transition-colors duration-500" />
+											</div>
+										</div>
+										<h3 className="text-2xl font-serif font-bold tracking-tight mb-3">
+											{feature.title}
+										</h3>
+										<p className="text-muted-foreground leading-relaxed">
+											{feature.desc}
 										</p>
 									</div>
-								</div>
+								</Card>
+							))}
+						</div>
+					</div>
+				</section>
 
-								<div className="flex gap-4">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10">
-										<Shield className="h-5 w-5 text-accent" />
-									</div>
-									<div>
-										<h3 className="font-semibold">Secure Payments</h3>
-										<p className="text-sm text-muted-foreground">
-											Automatic payouts, transparent fees, and fraud protection
-											built in.
-										</p>
-									</div>
+				{/* ═══════════════════════════════════════════════════
+					TESTIMONIAL — Editorial Quote
+				═══════════════════════════════════════════════════ */}
+				<section className="py-24 md:py-32 bg-white border-y border-[#1A1A1A]/5">
+					<div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20">
+						<div className="gs-fade">
+							{/* Header row */}
+							<div className="flex items-center justify-between mb-16">
+								<div className="flex items-baseline gap-2">
+									<span className="text-3xl md:text-4xl font-serif font-bold tracking-tight">
+										{String(testimonialIndex + 1).padStart(2, "0")}
+									</span>
+									<span className="text-lg text-muted-foreground/40 font-serif">
+										/{testimonials.length}
+									</span>
 								</div>
-
-								<div className="flex gap-4">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-										<Users className="h-5 w-5 text-primary" />
-									</div>
-									<div>
-										<h3 className="font-semibold">Built-In Audience</h3>
-										<p className="text-sm text-muted-foreground">
-											Reach thousands of conscious consumers actively looking
-											for unique products.
-										</p>
-									</div>
-								</div>
+								<span className="text-[11px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
+									[Testimonials]
+								</span>
+								<Quote className="h-8 w-8 text-[#1A1A1A]/10" />
 							</div>
 
-							<Button size="lg" className="mt-8" asChild>
-								<Link href="/auth/signup">
-									Start Selling Today
-									<ArrowRight className="ml-2 h-5 w-5" />
-								</Link>
+							{/* Content */}
+							<div className="grid lg:grid-cols-12 gap-12 items-start">
+								{/* Left: reviewer */}
+								<div className="lg:col-span-3">
+									<p className="font-serif text-lg font-bold">
+										[{currentTestimonial.name}]
+									</p>
+									<p className="text-sm text-muted-foreground mt-1">
+										{currentTestimonial.role}
+									</p>
+								</div>
+
+								{/* Center: quote */}
+								<div className="lg:col-span-6">
+									<blockquote className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold leading-[1.2] tracking-tight">
+										{currentTestimonial.text}
+									</blockquote>
+									<div className="flex items-center gap-3 mt-8">
+										<div className="flex gap-0.5">
+											{Array.from({ length: currentTestimonial.rating }).map(
+												(_, i) => (
+													<Star
+														key={i}
+														className="h-4 w-4 fill-primary text-primary"
+													/>
+												)
+											)}
+										</div>
+										<span className="text-sm text-muted-foreground">
+											{currentTestimonial.rating}.0 (
+											{currentTestimonial.reviews} Reviews)
+										</span>
+									</div>
+								</div>
+
+								{/* Right: empty for balance */}
+								<div className="lg:col-span-3" />
+							</div>
+
+							{/* Navigation */}
+							<div className="flex items-center justify-between mt-16 pt-8 border-t border-[#1A1A1A]/5">
+								<div className="flex gap-3">
+									<button
+										onClick={() =>
+											setTestimonialIndex(
+												(testimonialIndex - 1 + testimonials.length) %
+												testimonials.length
+											)
+										}
+										className="h-10 w-10 rounded-full border border-[#1A1A1A]/10 flex items-center justify-center hover:bg-[#1A1A1A] hover:text-white transition-all"
+									>
+										<ChevronLeft className="h-4 w-4" />
+									</button>
+									<button
+										onClick={() =>
+											setTestimonialIndex(
+												(testimonialIndex + 1) % testimonials.length
+											)
+										}
+										className="h-10 w-10 rounded-full border border-[#1A1A1A]/10 flex items-center justify-center hover:bg-[#1A1A1A] hover:text-white transition-all"
+									>
+										<ChevronRight className="h-4 w-4" />
+									</button>
+								</div>
+								<p className="text-xs font-bold uppercase tracking-widest text-muted-foreground/50">
+									See What Our Customers Are Saying
+								</p>
+								<Quote className="h-5 w-5 text-[#1A1A1A]/10 rotate-180" />
+							</div>
+						</div>
+					</div>
+				</section>
+
+				{/* ═══════════════════════════════════════════════════
+					FEATURED VENDORS
+				═══════════════════════════════════════════════════ */}
+				<section className="py-24 md:py-32 bg-[#F5F4F0]">
+					<div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20">
+						<div className="gs-fade flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+							<div>
+								<span className="text-[11px] font-bold uppercase tracking-[0.3em] text-primary mb-4 inline-block">
+									[Vendors]
+								</span>
+								<h2 className="text-5xl md:text-6xl font-serif font-bold tracking-tighter leading-[0.9]">
+									©vendora —
+									<br />
+									<span className="text-muted-foreground/30 italic font-light">
+										seller spotlight
+									</span>
+								</h2>
+							</div>
+							<Button
+								variant="outline"
+								asChild
+								className="rounded-full px-6 h-11 font-bold uppercase text-xs tracking-widest border-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white transition-all shrink-0"
+							>
+								<Link href="/vendors">All Vendors</Link>
 							</Button>
 						</div>
 
-						{/* Stats card */}
-						<div className="flex items-center">
-							<Card className="w-full border-2 p-8">
-								<h3 className="font-serif text-2xl font-bold">
-									Transparent Pricing
-								</h3>
-								<p className="mt-2 text-sm text-muted-foreground">
-									No hidden fees, no surprises
-								</p>
-
-								<div className="mt-8 space-y-6">
-									<div className="flex items-baseline justify-between border-b border-border pb-4">
-										<span className="text-muted-foreground">
-											Commission per sale
-										</span>
-										<span className="text-2xl font-bold">5%</span>
-									</div>
-									<div className="flex items-baseline justify-between border-b border-border pb-4">
-										<span className="text-muted-foreground">Monthly fee</span>
-										<span className="text-2xl font-bold">$0</span>
-									</div>
-									<div className="flex items-baseline justify-between border-b border-border pb-4">
-										<span className="text-muted-foreground">Setup cost</span>
-										<span className="text-2xl font-bold">$0</span>
-									</div>
-									<div className="flex items-baseline justify-between">
-										<span className="text-muted-foreground">
-											Payment processing
-										</span>
-										<span className="text-2xl font-bold">2.9% + 30¢</span>
-									</div>
+						<div className="gs-stagger-group grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+							{featuredVendors.map((vendor) => (
+								<div key={vendor.id} className="gs-stagger-child">
+									<VendorCard
+										id={vendor.id}
+										description={vendor.description}
+										name={vendor.name}
+										category="Featured Vendor"
+										location={vendor.location}
+										rating={vendor.rating}
+									/>
 								</div>
-
-								<div className="mt-8 rounded-lg bg-primary/5 p-4">
-									<p className="text-sm text-muted-foreground">
-										You keep{" "}
-										<span className="font-semibold text-foreground">92.1%</span>{" "}
-										of every sale. That&apos;s it.
-									</p>
-								</div>
-							</Card>
+							))}
 						</div>
 					</div>
-				</div>
-			</section>
+				</section>
 
-			{/* CTA Section */}
-			<section className="border-t border-border py-16 sm:py-24">
-				<div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-					<h2 className="text-4xl md:text-6xl lg:text-7xl">
-						Ready to join the <br />
-						<span className="italic text-primary">marketplace?</span>
-					</h2>
-					<p className="mt-8 text-xl text-muted-foreground max-w-2xl mx-auto">
-						Whether you&apos;re looking to discover unique products or start
-						selling your own, Vendora is here for you.
-					</p>
-					<div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
-						<Button size="lg" asChild>
-							<Link href="/marketplace">Browse Products</Link>
-						</Button>
-						<Button size="lg" variant="outline" asChild>
-							<Link href="/auth/signup">Become a Vendor</Link>
-						</Button>
+				{/* ═══════════════════════════════════════════════════
+					CTA — Dark Section
+				═══════════════════════════════════════════════════ */}
+				<section className="relative py-28 md:py-36 overflow-hidden bg-[#1A1A1A] text-white">
+					<div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[200px] pointer-events-none" />
+					<div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[150px] pointer-events-none" />
+
+					<div className="gs-fade relative max-w-4xl mx-auto px-6 md:px-12 text-center">
+						<span className="text-[11px] font-bold uppercase tracking-[0.3em] text-primary mb-6 inline-block">
+							[Join Vendora]
+						</span>
+						<h2 className="text-5xl md:text-6xl lg:text-7xl font-serif font-bold tracking-tighter leading-[0.9] mb-6">
+							Ready to
+							<br />
+							<span className="italic font-light text-white/40">
+								start selling?
+							</span>
+						</h2>
+						<p className="text-lg text-white/50 max-w-2xl mx-auto leading-relaxed mb-12">
+							Whether you&apos;re a buyer hunting for unique finds or a seller
+							ready to reach thousands — Vendora is your platform.
+						</p>
+						<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+							<Button
+								size="lg"
+								asChild
+								className="h-14 px-10 rounded-full text-base font-semibold bg-white text-[#1A1A1A] hover:bg-white/90 shadow-xl transition-all uppercase tracking-wider"
+							>
+								<Link href="/auth/signup">
+									Apply Now
+									<ArrowRight className="ml-2 h-5 w-5" />
+								</Link>
+							</Button>
+							<Button
+								size="lg"
+								variant="ghost"
+								asChild
+								className="h-14 px-10 rounded-full text-base font-semibold text-white border border-white/15 hover:bg-white/10 transition-all uppercase tracking-wider"
+							>
+								<Link href="/marketplace">Shop as Buyer</Link>
+							</Button>
+						</div>
 					</div>
-				</div>
-			</section>
+				</section>
 
-			<Footer />
-		</div>
+				{/* ═══════════════════════════════════════════════════
+					FOOTER
+				═══════════════════════════════════════════════════ */}
+				<Footer />
+			</div>
+		</ReactLenis>
 	);
 }

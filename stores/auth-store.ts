@@ -7,6 +7,13 @@ export interface User {
     role: string;
     address?: string;
     id?: string;
+    profilePicture?: string;
+    bio?: string;
+    profile?: {
+        profileImage?: string;
+        bio?: string;
+        location?: string;
+    };
 }
 
 interface AuthState {

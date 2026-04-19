@@ -30,8 +30,8 @@ export default function CheckoutForm({ clientSecret, orderId }: { clientSecret: 
         const { error } = await stripe.confirmPayment({
             elements,
             confirmParams: {
-                // Return to orders page where webhook will have updated the status
-                return_url: `${window.location.origin}/buyer/dashboard/orders?payment_intent_id=success`,
+                // Return to orders page where we can force verify even if webhook is slow/blocked
+                return_url: `${window.location.origin}/buyer/dashboard/orders?payment_intent_id=success&orderId=${orderId}`,
             },
         });
 

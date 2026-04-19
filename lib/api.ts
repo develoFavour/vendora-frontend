@@ -3,10 +3,10 @@ import axios, { AxiosError } from "axios";
 import { useAuthStore } from "@/stores/auth-store";
 
 // API utility functions for onboarding
-// const API_BASE_URL =
-// 	process.env.NEXT_PUBLIC_BASE_API_URL ||
-// 	"https://vendora-backend-production.up.railway.app";
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL =
+	process.env.NEXT_PUBLIC_BASE_API_URL ||
+	"https://vendora-backend-production.up.railway.app";
+// const API_BASE_URL = "http://localhost:8080";
 
 // Get auth token from localStorage or cookies
 export const getAuthToken = () => {
@@ -181,8 +181,11 @@ api.interceptors.response.use(
 	async (error: AxiosError<ErrorPayload>) => {
 		const originalRequest = error.config as any;
 
+		// Skip 401 interception for auth endpoints (like login)
+		const isAuthRoute = originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/register');
+
 		// If error is 401 and we haven't tried refreshing yet
-		if (error.response?.status === 401 && !originalRequest._retry) {
+		if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
 			if (isRefreshing) {
 				// If already refreshing, add to queue
 				return new Promise((resolve, reject) => {
@@ -304,7 +307,10 @@ export const sellerOnboardingAPI = {
 		businessName: string;
 		description: string;
 		location: string;
+		shipsFrom?: string;
 		url?: string;
+		shippingPolicy?: string;
+		returnPolicy?: string;
 	}) => {
 		const res = await api.post(
 			"/api/v1/onboarding/seller/business-details",
@@ -320,6 +326,7 @@ export const sellerOnboardingAPI = {
 		primaryColor?: string;
 		accentColor?: string;
 		storeLogo?: File;
+		storeBanner?: File;
 	}) => {
 		const formData = new FormData();
 
@@ -336,6 +343,10 @@ export const sellerOnboardingAPI = {
 
 		if (storeData.storeLogo) {
 			formData.append("storeLogo", storeData.storeLogo);
+		}
+
+		if (storeData.storeBanner) {
+			formData.append("storeBanner", storeData.storeBanner);
 		}
 
 		const res = await api.post(
@@ -387,10 +398,64 @@ export const productAPI = {
 	},
 };
 
+// Public Product API (no auth required — safe for guests and landing page)
+export const publicProductAPI = {
+	list: async (params?: { page?: number; limit?: number; query?: string; category?: string; sort?: string }) => {
+		const res = await axios.get(`${API_BASE_URL}/api/v1/public/products`, { params });
+		return res.data;
+	},
+	getById: async (id: string) => {
+		const res = await axios.get(`${API_BASE_URL}/api/v1/public/products/${id}`);
+		return res.data;
+	},
+	similar: async (id: string) => {
+		const res = await axios.get(`${API_BASE_URL}/api/v1/public/products/${id}/similar`);
+		return res.data;
+	},
+	getProductReviews: async (id: string) => {
+		const res = await axios.get(`${API_BASE_URL}/api/v1/products/${id}/reviews`);
+		return res.data;
+	},
+};
+
+export const publicVendorAPI = {
+	list: async (params?: { page?: number; limit?: number; search?: string; category?: string }) => {
+		const res = await axios.get(`${API_BASE_URL}/api/v1/public/vendors`, { params });
+		return res.data;
+	},
+	getById: async (id: string) => {
+		const res = await axios.get(`${API_BASE_URL}/api/v1/public/vendors/${id}`);
+		return res.data;
+	},
+};
+
+export const publicCategoryAPI = {
+	list: async () => {
+		const res = await axios.get(`${API_BASE_URL}/api/v1/public/categories`);
+		return res.data;
+	},
+};
+
 // Category API functions
 export const categoryAPI = {
-	list: async () => {
-		const res = await api.get("/api/v1/categories");
+	list: async (params?: { isActive?: boolean; parentId?: string; topLevel?: boolean }) => {
+		const res = await api.get("/api/v1/categories", { params });
+		return res.data;
+	},
+	getById: async (id: string) => {
+		const res = await api.get(`/api/v1/categories/${id}`);
+		return res.data;
+	},
+	create: async (data: { name: string; description?: string; slug?: string; parentId?: string; icon?: string; image?: string }) => {
+		const res = await api.post("/api/v1/categories", data);
+		return res.data;
+	},
+	update: async (id: string, data: Partial<{ name: string; description?: string; slug?: string; parentId?: string; icon?: string; image?: string; isActive?: boolean }>) => {
+		const res = await api.put(`/api/v1/categories/${id}`, data);
+		return res.data;
+	},
+	delete: async (id: string) => {
+		const res = await api.delete(`/api/v1/categories/${id}`);
 		return res.data;
 	},
 };
@@ -492,10 +557,52 @@ export const reviewsAPI = {
 	}
 };
 
+export const userAPI = {
+	getProfile: async () => {
+		const res = await api.get("/api/v1/profile");
+		return res.data;
+	},
+	updateProfile: async (data: any) => {
+		const res = await api.put("/api/v1/profile", data);
+		return res.data;
+	},
+	changePassword: async (data: any) => {
+		const res = await api.put("/api/v1/profile/password", data);
+		return res.data;
+	},
+};
+
+export const tierAPI = {
+	requestUpgrade: async (data: any) => {
+		const res = await api.post('/api/v1/vendor/tier/upgrade', data);
+		return res.data;
+	},
+	getStatus: async () => {
+		const res = await api.get('/api/v1/vendor/tier/status');
+		return res.data;
+	},
+	getEligibility: async () => {
+		const res = await api.get('/api/v1/vendor/tier/eligibility');
+		return res.data;
+	},
+	getHistory: async () => {
+		const res = await api.get('/api/v1/vendor/tier/history');
+		return res.data;
+	},
+	appealSuspension: async (reason: string) => {
+		const res = await api.post('/api/v1/vendor/tier/appeal', { reason });
+		return res.data;
+	},
+};
+
 // Payment API functions
 export const paymentAPI = {
 	createIntent: async (orderId: string) => {
 		const res = await api.post("/api/v1/payments/create-intent", { orderId });
+		return res.data;
+	},
+	verify: async (orderId: string) => {
+		const res = await api.post(`/api/v1/payments/verify/${orderId}`);
 		return res.data;
 	},
 };
@@ -516,6 +623,17 @@ export const vendorOrdersAPI = {
 	},
 	updateStatus: async (id: string, status: string, trackingNumber?: string) => {
 		const res = await api.put(`/api/v1/vendor/orders/${id}/status`, { status, trackingNumber });
+		return res.data;
+	},
+};
+
+export const walletAPI = {
+	getOverview: async () => {
+		const res = await api.get("/api/v1/vendor/wallet/overview");
+		return res.data;
+	},
+	requestPayout: async (data: { amount: number; method: string; accountDetails: any }) => {
+		const res = await api.post("/api/v1/vendor/wallet/payout", data);
 		return res.data;
 	},
 };

@@ -8,8 +8,9 @@ import { Eye, EyeOff, Mail, Lock, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api, setAuthTokens } from "@/lib/api";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
+import { useCartMerge } from "@/hooks/use-cart-merge";
 
 export default function LoginPage() {
 	const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +22,9 @@ export default function LoginPage() {
 	});
 
 	const router = useRouter();
+	const searchParams = useSearchParams();
 	const { setAuth } = useAuthStore();
+	const { mergeCart } = useCartMerge();
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -40,12 +43,17 @@ export default function LoginPage() {
 			if (token && user) {
 				setAuth(user, token, refreshToken);
 				setAuthTokens(token, refreshToken);
+				// Merge guest cart → real cart (non-blocking)
+				await mergeCart();
 			}
 
 			toast.success("Signed in successfully");
 
-			// Redirect based on role
-			if (user?.role === "admin") {
+			// Honor redirect param (e.g. from checkout gate)
+			const redirectTo = searchParams.get("redirect");
+			if (redirectTo) {
+				router.push(redirectTo);
+			} else if (user?.role === "admin") {
 				router.push("/admin/dashboard");
 			} else if (user?.role === "vendor" || user?.role === "seller") {
 				router.push("/vendor/dashboard");
