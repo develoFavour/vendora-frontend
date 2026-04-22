@@ -21,7 +21,8 @@ import { ProductCard } from "@/components/marketplace/product-card";
 import { VendorCard } from "@/components/marketplace/vendor-card";
 import { usePublicProducts } from "@/hooks/use-public-products";
 
-import ReactLenis from "@studio-freight/react-lenis";
+import Lenis from "lenis";
+
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -102,13 +103,36 @@ const featuredVendors = [
 
 /* ─── Page ─── */
 export default function HomePage() {
-	const { data: productsData, isLoading: productsLoading } =
-		usePublicProducts({ limit: 8 });
+	const { data: productsData, isLoading: productsLoading } = usePublicProducts({
+		limit: 8,
+	});
 	const featuredProducts = productsData?.data?.products || [];
 
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [testimonialIndex, setTestimonialIndex] = useState(0);
 	const currentTestimonial = testimonials[testimonialIndex];
+
+	useEffect(() => {
+		const lenis = new Lenis({
+			smoothWheel: true,
+			lerp: 0.14,
+			duration: 0.8,
+		});
+
+		let frameId = 0;
+
+		const raf = (time: number) => {
+			lenis.raf(time);
+			frameId = window.requestAnimationFrame(raf);
+		};
+
+		frameId = window.requestAnimationFrame(raf);
+
+		return () => {
+			window.cancelAnimationFrame(frameId);
+			lenis.destroy();
+		};
+	}, []);
 
 	useGSAP(
 		() => {
@@ -164,7 +188,7 @@ export default function HomePage() {
 									start: "top 97%",
 									toggleActions: "play none none none",
 								},
-							}
+							},
 						);
 					});
 
@@ -187,7 +211,7 @@ export default function HomePage() {
 										start: "top 96%",
 										toggleActions: "play none none none",
 									},
-								}
+								},
 							);
 						});
 
@@ -206,7 +230,7 @@ export default function HomePage() {
 									start: "top 98%",
 									toggleActions: "play none none none",
 								},
-							}
+							},
 						);
 					});
 
@@ -224,7 +248,7 @@ export default function HomePage() {
 									end: "bottom top",
 									scrub: true,
 								},
-							}
+							},
 						);
 					});
 
@@ -238,15 +262,14 @@ export default function HomePage() {
 
 			return () => clearTimeout(timer);
 		},
-		{ scope: containerRef, dependencies: [productsLoading] }
+		{ scope: containerRef, dependencies: [productsLoading] },
 	);
 
 	return (
-		<ReactLenis root options={{ smoothWheel: true, lerp: 0.14, duration: 0.8 }}>
-			<div
-				ref={containerRef}
-				className="flex min-h-screen flex-col bg-[#F5F4F0] text-[#1A1A1A] font-sans relative overflow-x-clip selection:bg-primary selection:text-primary-foreground"
-			>
+		<div
+			ref={containerRef}
+			className="flex min-h-screen flex-col bg-[#F5F4F0] text-[#1A1A1A] font-sans relative overflow-x-clip selection:bg-primary selection:text-primary-foreground"
+		>
 				<Navigation />
 
 				{/* ═══════════════════════════════════════════════════
@@ -254,14 +277,18 @@ export default function HomePage() {
 				═══════════════════════════════════════════════════ */}
 				<section className="relative min-h-[95vh] flex items-center overflow-hidden bg-[#FBFAF7]">
 					{/* Subtle Background Elements */}
-					<div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3 External%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
+					<div
+						className="absolute inset-0 opacity-[0.03] pointer-events-none"
+						style={{
+							backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3 External%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+						}}
+					/>
 
 					{/* The "Golden Halo" - Harmonizes with the image without flooding the section */}
 					<div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#F4BC2C]/10 rounded-full blur-[120px] pointer-events-none" />
 
 					<div className="relative w-full max-w-[1440px] mx-auto px-8 md:px-16 lg:px-24 py-12">
 						<div className="relative flex flex-col lg:flex-row items-center justify-between">
-
 							{/* LEFT: Discover Unique */}
 							<div className="lg:w-[45%] z-20">
 								<div className="space-y-0">
@@ -272,7 +299,12 @@ export default function HomePage() {
 									</div>
 									<div className="overflow-hidden py-4 px-2 pr-12 mt-1 w-max">
 										<h1 className="hero-line text-[clamp(4rem,9vw,9rem)] font-sans font-black leading-none tracking-[-0.05em] text-[#1A1A1A]">
-											<span className="text-transparent" style={{ WebkitTextStroke: "1px #1A1A1A" }}>Unique</span>
+											<span
+												className="text-transparent"
+												style={{ WebkitTextStroke: "1px #1A1A1A" }}
+											>
+												Unique
+											</span>
 										</h1>
 									</div>
 								</div>
@@ -285,7 +317,8 @@ export default function HomePage() {
 										</span>
 									</div>
 									<p className="text-base text-muted-foreground leading-relaxed">
-										A curated ecosystem of independent visionaries. We bridge the gap between artisan craft and the modern connoisseur.
+										A curated ecosystem of independent visionaries. We bridge
+										the gap between artisan craft and the modern connoisseur.
 									</p>
 
 									<div className="flex flex-wrap gap-4 pt-4">
@@ -330,13 +363,20 @@ export default function HomePage() {
 									<div className="hero-badge absolute -bottom-10 -right-6 md:-right-10 bg-white/90 backdrop-blur-md rounded-3xl p-5 shadow-2xl z-30 border border-white">
 										<div className="flex items-center gap-4">
 											<div className="flex -space-x-3">
-												{[1, 2, 3].map(i => (
-													<div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-100" />
+												{[1, 2, 3].map((i) => (
+													<div
+														key={i}
+														className="w-10 h-10 rounded-full border-2 border-white bg-slate-100"
+													/>
 												))}
 											</div>
 											<div>
-												<p className="text-xs font-black uppercase tracking-widest text-[#1A1A1A]">Curated</p>
-												<p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">12.4k+ Items</p>
+												<p className="text-xs font-black uppercase tracking-widest text-[#1A1A1A]">
+													Curated
+												</p>
+												<p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
+													12.4k+ Items
+												</p>
 											</div>
 										</div>
 									</div>
@@ -357,7 +397,12 @@ export default function HomePage() {
 									</div>
 									<div className="overflow-hidden py-4 px-2 pl-12 mt-1 w-max">
 										<h1 className="hero-line text-[clamp(4rem,9vw,9rem)] font-sans font-black leading-none tracking-[-0.05em] text-[#1A1A1A]">
-											<span className="text-transparent" style={{ WebkitTextStroke: "1px #1A1A1A" }}>Direct</span>
+											<span
+												className="text-transparent"
+												style={{ WebkitTextStroke: "1px #1A1A1A" }}
+											>
+												Direct
+											</span>
 										</h1>
 									</div>
 								</div>
@@ -447,15 +492,13 @@ export default function HomePage() {
 						<div className="gs-stagger-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
 							{productsLoading
 								? Array.from({ length: 4 }).map((_, i) => (
-									<div key={i} className="gs-stagger-child space-y-4">
-										<Skeleton className="aspect-[4/5] rounded-3xl" />
-										<Skeleton className="h-4 w-3/4 rounded-lg" />
-										<Skeleton className="h-4 w-1/2 rounded-lg" />
-									</div>
-								))
-								: featuredProducts
-									.slice(0, 4)
-									.map((product: any) => (
+										<div key={i} className="gs-stagger-child space-y-4">
+											<Skeleton className="aspect-[4/5] rounded-3xl" />
+											<Skeleton className="h-4 w-3/4 rounded-lg" />
+											<Skeleton className="h-4 w-1/2 rounded-lg" />
+										</div>
+									))
+								: featuredProducts.slice(0, 4).map((product: any) => (
 										<div key={product.id} className="gs-stagger-child">
 											<ProductCard
 												id={product.id}
@@ -683,7 +726,7 @@ export default function HomePage() {
 														key={i}
 														className="h-4 w-4 fill-primary text-primary"
 													/>
-												)
+												),
 											)}
 										</div>
 										<span className="text-sm text-muted-foreground">
@@ -704,7 +747,7 @@ export default function HomePage() {
 										onClick={() =>
 											setTestimonialIndex(
 												(testimonialIndex - 1 + testimonials.length) %
-												testimonials.length
+													testimonials.length,
 											)
 										}
 										className="h-10 w-10 rounded-full border border-[#1A1A1A]/10 flex items-center justify-center hover:bg-[#1A1A1A] hover:text-white transition-all"
@@ -714,7 +757,7 @@ export default function HomePage() {
 									<button
 										onClick={() =>
 											setTestimonialIndex(
-												(testimonialIndex + 1) % testimonials.length
+												(testimonialIndex + 1) % testimonials.length,
 											)
 										}
 										className="h-10 w-10 rounded-full border border-[#1A1A1A]/10 flex items-center justify-center hover:bg-[#1A1A1A] hover:text-white transition-all"
@@ -824,7 +867,6 @@ export default function HomePage() {
 					FOOTER
 				═══════════════════════════════════════════════════ */}
 				<Footer />
-			</div>
-		</ReactLenis>
+		</div>
 	);
 }
